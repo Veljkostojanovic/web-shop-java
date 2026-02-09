@@ -1,20 +1,22 @@
 package com.webshop.product;
 
+import com.webshop.category.CategoryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.webshop.category.Category;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
-
+    private Long Id;
     private String name;
     private String description;
-    private double price;
+    private BigDecimal price;
     private int stock;
-    private Category category;
+    private CategoryDTO category;
 }

@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.sql.results.graph.collection.internal.BagInitializer;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -12,8 +15,8 @@ import lombok.Setter;
 public class OrderItemDTO {
     private Long productId;
     private String productName;
-    private double productPrice;
+    private BigDecimal productPrice;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
 }
 

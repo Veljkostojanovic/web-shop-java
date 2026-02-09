@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 public class OrderDTO {
     private Long orderId;
     private LocalDateTime orderDate;
-    private double totalAmount;
+    private BigDecimal totalAmount;
     private List<OrderItemDTO> items;
 }
 

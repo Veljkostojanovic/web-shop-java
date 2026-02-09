@@ -1,6 +1,8 @@
 package com.webshop.user;
 
 public interface UserService {
-    UserDTO getUserByEmail(String email);
-    UserDTO getUserByUsername(String username);
+    User getUserByEmail(String email);
+    User getUserByUsername(String username);
+    void validateRegistration(String email, String userName);
+    User login(String email, String password);
 }

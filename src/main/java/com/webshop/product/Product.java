@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.webshop.category.Category;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +21,8 @@ public class Product {
     private Long id;
     private String name;
     private String description;
-    private double price;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal price;
     private int stock;
 
     @ManyToOne

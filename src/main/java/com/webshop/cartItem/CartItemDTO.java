@@ -1,6 +1,8 @@
-package com.webshop.cart;
+package com.webshop.cartItem;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -9,8 +11,8 @@ import lombok.*;
 public class CartItemDTO {
     private Long productId;
     private String productName;
-    private double productPrice;
+    private BigDecimal productPrice;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
 }
 

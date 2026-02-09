@@ -1,12 +1,12 @@
-package com.webshop.cart;
+package com.webshop.cartItem;
 
+import com.webshop.cart.Cart;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.webshop.product.Product;
-import com.webshop.user.User;
 
 @Getter
 @Setter

@@ -1,5 +1,6 @@
 package com.webshop.cart;
 
+import com.webshop.cartItem.CartItem;
 import jakarta.persistence.*;
 import lombok.*;
 import com.webshop.user.User;
@@ -11,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "cart")
 public class Cart {
 
     @Id

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.webshop.user.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,8 +24,8 @@ public class OrderEntity {
     private User user;
 
     private LocalDateTime orderDate;
-    private double totalAmount;
+    private BigDecimal totalAmount;
 
-    @OneToMany(mappedBy = "orderEntity")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 }
