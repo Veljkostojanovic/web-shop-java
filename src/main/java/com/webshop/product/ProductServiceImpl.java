@@ -1,6 +1,7 @@
 package com.webshop.product;
 
 import com.webshop.category.CategoryRepository;
+import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,7 @@ public class ProductServiceImpl implements ProductService{
 
         if(productDTO.getCategory().getId() != null){
             product.setCategory(categoryRepository.
-                    findById(productDTO.getCategory().getId()).orElseThrow( () -> new IllegalArgumentException("category id not found")));
+                    findById(productDTO.getCategory().getId()).orElseThrow( () -> new ResourceNotFoundException("Category id not found")));
         }
 
         Product saved = productRepository.save(product);
@@ -40,12 +41,12 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
-        if(productDTO == null)throw new IllegalArgumentException("product cannot be null");
-        if(productId == null)throw new IllegalArgumentException("productId cannot be null");
+        if(productDTO == null)throw new IllegalArgumentException("Product cannot be null");
+        if(productId == null)throw new IllegalArgumentException("ProductId cannot be null");
 
 
         Product existing = productRepository.findById(productId)
-                .orElseThrow( () -> new IllegalArgumentException("product id not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
 
         existing.setName(productDTO.getName());
         existing.setPrice(productDTO.getPrice());
@@ -54,7 +55,7 @@ public class ProductServiceImpl implements ProductService{
 
         if (productDTO.getCategory() != null && productDTO.getCategory().getId() != null) {
             existing.setCategory(categoryRepository.findById(productDTO.getCategory().getId())
-                    .orElseThrow(() -> new RuntimeException("Category not found")));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
         }
 
         Product updated = productRepository.save(existing);
@@ -66,11 +67,11 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long productId) {
         if(productId == null){
-            throw new  IllegalArgumentException("productId cannot be null");
+            throw new  IllegalArgumentException("ProductId cannot be null");
         }
 
         Product product =  productRepository.findById(productId)
-                            .orElseThrow( () -> new IllegalArgumentException("product id not found"));
+                            .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
 
         return ProductMapper.toDTO(product);
     }
@@ -88,7 +89,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public List<ProductDTO> findByCategoryId(Long categoryId) {
         if(categoryId == null){
-            throw new  IllegalArgumentException("categoryId cannot be null");
+            throw new  IllegalArgumentException("CategoryId cannot be null");
         }
 
         return productRepository.findByCategoryId(categoryId)
@@ -110,7 +111,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional
     public boolean deleteProduct(Long productId) {
         if(productId == null){
-            throw new IllegalArgumentException("productId cannot be null");
+            throw new IllegalArgumentException("ProductId cannot be null");
         }
 
         if(!productRepository.existsById(productId)){
@@ -124,7 +125,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public boolean existsByNameIgnoreCase(String name) {
         if(name == null || name.isEmpty()){
-            throw new  IllegalArgumentException("name cannot be null or empty");
+            throw new  IllegalArgumentException("Name cannot be null or empty");
         }
 
         return productRepository.existsByNameIgnoreCase(name);

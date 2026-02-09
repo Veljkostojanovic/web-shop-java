@@ -13,7 +13,6 @@ public class CategoryMapper {
     public static Category toEntity(CategoryDTO categoryDTO) {
         if(categoryDTO == null) return null;
         Category category = new Category();
-        category.setId(categoryDTO.getId());
         category.setName(categoryDTO.getName());
         return category;
     }

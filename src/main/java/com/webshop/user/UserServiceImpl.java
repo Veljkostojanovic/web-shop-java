@@ -1,5 +1,6 @@
 package com.webshop.user;
 
+import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,12 +14,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByEmail(String email) {
-        return userRepository.getByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.getByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     public User getUserByUsername(String username) {
-        return userRepository.getByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.getByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override

@@ -12,7 +12,7 @@ public interface CategoryService {
 
     List<CategoryDTO> getAllCategories();
 
-    boolean deleteCategory(Long categoryId);
+    void deleteCategory(Long categoryId);
 
     boolean existsByNameIgnoreCase(String name);
 }
