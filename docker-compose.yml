@@ -1,21 +1,16 @@
 services:
   db:
-    container_name: web-shop
-    image: postgres:latest
+    container_name: web-shop-db
+    image: postgres:16
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: Password11231
-      PGDATA: /data/postgres
+      POSTGRES_DB: webshop
     volumes:
-      - db:/data/postgres
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5332:5432"
-    networks:
-      - db
     restart: unless-stopped
 
-networks:
-  db:
-    driver: bridge
 volumes:
-  db:
+  postgres_data:

@@ -27,6 +27,10 @@ public class ProductServiceImpl implements ProductService{
             throw new IllegalArgumentException("product cannot be null");
         }
 
+        if(productRepository.existsByNameIgnoreCase(productDTO.getName())){
+            throw new IllegalArgumentException("product name already exists");
+        }
+
         Product product = ProductMapper.toEntity(productDTO);
 
         if(productDTO.getCategory().getId() != null){

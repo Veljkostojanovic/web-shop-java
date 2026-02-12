@@ -1,8 +1,12 @@
 package com.webshop.user;
 
+import com.webshop.Authorization.LoginRequest;
+import com.webshop.Authorization.RegisterRequest;
+
 public interface UserService {
-    User getUserByEmail(String email);
-    User getUserByUsername(String username);
+    User findUserByEmail(String email);
+    User findUserByUsername(String username);
     void validateRegistration(String email, String userName);
-    User login(String email, String password);
+    User login(LoginRequest loginRequest);
+    User register(RegisterRequest registerRequest);
 }
