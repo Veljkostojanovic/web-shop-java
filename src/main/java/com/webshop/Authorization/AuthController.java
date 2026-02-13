@@ -1,8 +1,10 @@
 package com.webshop.Authorization;
 
+import com.webshop.JWT.JwtService;
 import com.webshop.user.User;
 import com.webshop.user.UserResponse;
 import com.webshop.user.UserService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,23 +12,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@AllArgsConstructor
 public class AuthController {
-
+    private final JwtService jwtService;
     private final UserService userService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request) {
+
+        User user = userService.login(request);
+        String token = jwtService.generateToken(user);
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        return response;
     }
 
     @PostMapping("/register")
     public UserResponse register(@RequestBody RegisterRequest request) {
         User user = userService.register(request);
-        return mapToResponse(user);
-    }
-
-    @PostMapping("/login")
-    public UserResponse login(@RequestBody LoginRequest request) {
-        User user = userService.login(request);
         return mapToResponse(user);
     }
 
