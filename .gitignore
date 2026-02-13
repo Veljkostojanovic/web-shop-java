@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Secrets
+.env
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +34,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# You can ignore local logs or temp files
+*.log
+

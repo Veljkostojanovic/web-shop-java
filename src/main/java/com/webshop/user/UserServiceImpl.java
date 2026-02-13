@@ -38,9 +38,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User login(LoginRequest loginRequest) {
 
-        User user = userRepository.findByUsername(loginRequest.username).orElseThrow(() -> new ResourceNotFoundException("Invalid credentials"));
+        User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Invalid credentials"));
 
-        if(!passwordEncoder.matches(loginRequest.password, user.getPassword())) {
+        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
         return user;
@@ -48,13 +48,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(RegisterRequest registerRequest) {
-        if(userRepository.existsByUsername(registerRequest.username)){
-            throw new IllegalArgumentException("Username already exists");
-        }
 
-        if(userRepository.existsByEmail(registerRequest.email)){
-            throw new IllegalArgumentException("Email already exists");
-        }
+        validateRegistration(registerRequest.email, registerRequest.username);
 
         User user = new User();
         user.setUsername(registerRequest.username);
