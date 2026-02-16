@@ -1,6 +1,5 @@
 package com.webshop.JWT;
 
-import com.webshop.user.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.webshop.Authorization;
+package com.webshop.authorization;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

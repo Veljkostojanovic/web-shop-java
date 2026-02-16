@@ -1,4 +1,4 @@
-package com.webshop.Authorization;
+package com.webshop.authorization;
 
 public class RegisterRequest {
     public String username;

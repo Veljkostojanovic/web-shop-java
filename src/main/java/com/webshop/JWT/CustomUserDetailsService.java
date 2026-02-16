@@ -1,5 +1,7 @@
-package com.webshop.user;
+package com.webshop.JWT;
 
+import com.webshop.user.User;
+import com.webshop.user.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,12 +1,14 @@
 package com.webshop.user;
 
-import com.webshop.Authorization.LoginRequest;
-import com.webshop.Authorization.RegisterRequest;
+import com.webshop.authorization.LoginRequest;
+import com.webshop.authorization.RegisterRequest;
 import com.webshop.cart.Cart;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -16,13 +18,15 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public User findUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public UserDTO findUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return UserMapper.toDTO(user);
     }
 
     @Override
-    public User findUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public UserDTO findUserByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return UserMapper.toDTO(user);
     }
 
     @Override
@@ -62,5 +66,16 @@ public class UserServiceImpl implements UserService {
         user.setCart(cart);
 
         return userRepository.save(user);
+    }
+
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream().map(UserMapper::toDTO).toList();
+    }
+
+    @Override
+    public void deleteUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        userRepository.delete(user);
     }
 }

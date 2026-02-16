@@ -1,4 +1,4 @@
-package com.webshop.Authorization;
+package com.webshop.authorization;
 
 import com.webshop.JWT.JwtService;
 import com.webshop.user.User;
