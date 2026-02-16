@@ -4,13 +4,13 @@ import com.webshop.authorization.LoginRequest;
 import com.webshop.authorization.RegisterRequest;
 import com.webshop.cart.Cart;
 import com.webshop.common.exceptions.ResourceNotFoundException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -62,8 +62,7 @@ public class UserServiceImpl implements UserService {
         user.setRole("USER");
 
         Cart cart = new Cart();
-        cart.setUser(user);
-        user.setCart(cart);
+        cart.setUserId(user.getId());
 
         return userRepository.save(user);
     }

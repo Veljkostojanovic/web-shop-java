@@ -23,9 +23,13 @@ public class CartItem {
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    private Long productId;
 
     private int quantity;
+
+    public CartItem(Cart cart, Long productId, int quantity) {
+        this.cart = cart;
+        this.productId = productId;
+        this.quantity = quantity;
+    }
 }

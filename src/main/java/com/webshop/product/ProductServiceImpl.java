@@ -2,6 +2,7 @@ package com.webshop.product;
 
 import com.webshop.category.CategoryRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,16 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService{
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-    }
-
 
     @Override
     @Transactional

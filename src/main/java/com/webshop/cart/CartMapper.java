@@ -2,32 +2,32 @@ package com.webshop.cart;
 
 import com.webshop.cartItem.CartItem;
 import com.webshop.cartItem.CartItemDTO;
+import com.webshop.product.ProductDTO;
 
 import java.math.BigDecimal;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class CartMapper {
 
-    public static CartDTO toDTO(Cart cart) {
-        if(cart == null) return null;
-        CartDTO dto = new CartDTO();
-        dto.setItems(cart.getItems().stream()
-                .map(CartMapper::toDTO)
-                .collect(Collectors.toList()));
-        dto.setTotalPrice(cart.getItems().stream()
-                .map(item -> item.getProduct().getPrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-        return dto;
+    public static CartDTO toDTO(Cart cart, List<CartItemDTO> itemDTOs) {
+        if (cart == null) return null;
+
+        BigDecimal total = itemDTOs.stream()
+                .map(CartItemDTO::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new CartDTO(itemDTOs, total);
     }
 
-    public static CartItemDTO toDTO(CartItem item) {
+    public static CartItemDTO toCartItemDTO(CartItem item, ProductDTO product) {
+        BigDecimal totalPrice = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+
         return new CartItemDTO(
-                item.getProduct().getId(),
-                item.getProduct().getName(),
-                item.getProduct().getPrice(),
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
                 item.getQuantity(),
-                item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                totalPrice
         );
     }
 }

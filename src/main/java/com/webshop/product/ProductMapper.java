@@ -8,12 +8,11 @@ public class ProductMapper {
         if(product == null) return null;
         ProductDTO productDTO = new ProductDTO();
 
-        // name, desc, price, stock, mapp cat->dto
         productDTO.setName(product.getName());
         productDTO.setDescription(product.getDescription());
         productDTO.setPrice(product.getPrice());
         productDTO.setStock(product.getStock());
-        productDTO.setId(product.getId()); // ne treba al za mene
+        productDTO.setId(product.getId());
         productDTO.setCategory(CategoryMapper.toDTO(product.getCategory()));
         return productDTO;
     }
