@@ -2,6 +2,7 @@ package com.webshop.product;
 
 import com.webshop.category.CategoryRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductDTO addProduct(ProductDTO productDTO) {
+    public ProductDTO addProduct(@Valid ProductDTO productDTO) {
         if(productDTO == null){
             throw new IllegalArgumentException("product cannot be null");
         }
@@ -40,7 +41,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
+    public ProductDTO updateProduct(Long productId, @Valid ProductDTO productDTO) {
         if(productDTO == null)throw new IllegalArgumentException("Product cannot be null");
         if(productId == null)throw new IllegalArgumentException("ProductId cannot be null");
 
@@ -125,7 +126,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public boolean existsByNameIgnoreCase(String name) {
         if(name == null || name.isEmpty()){
-            throw new  IllegalArgumentException("Name cannot be null or empty");
+            throw new IllegalArgumentException("Name cannot be null or empty");
         }
 
         return productRepository.existsByNameIgnoreCase(name);

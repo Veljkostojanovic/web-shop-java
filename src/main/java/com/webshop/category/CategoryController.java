@@ -1,5 +1,6 @@
 package com.webshop.category;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> addCategory(@RequestBody  CategoryDTO categoryDTO){
+    public ResponseEntity<CategoryDTO> addCategory(@Valid @RequestBody  CategoryDTO categoryDTO){
         CategoryDTO savedCategoryDTO = categoryService.addCategory(categoryDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCategoryDTO);
     }

@@ -1,6 +1,5 @@
 package com.webshop.user;
 
-import com.webshop.cart.Cart;
 import jakarta.persistence.*;
 import lombok.*;
 

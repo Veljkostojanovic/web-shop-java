@@ -5,6 +5,7 @@ import com.webshop.authorization.RegisterRequest;
 import com.webshop.cart.Cart;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +33,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void validateRegistration(String email, String userName) {
         if(userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
+            throw new DataIntegrityViolationException("Email already exists");
         }
         if(userRepository.existsByUsername(userName)) {
-            throw new RuntimeException("Username already exists");
+            throw new DataIntegrityViolationException("Username already exists");
         }
     }
 
