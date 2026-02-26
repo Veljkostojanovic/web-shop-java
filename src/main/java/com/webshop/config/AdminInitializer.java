@@ -1,5 +1,6 @@
 package com.webshop.config;
 
+import com.webshop.cart.Cart;
 import com.webshop.user.User;
 import com.webshop.user.UserRepository;
 import jakarta.annotation.PostConstruct;

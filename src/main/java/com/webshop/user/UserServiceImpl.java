@@ -3,11 +3,13 @@ package com.webshop.user;
 import com.webshop.authorization.LoginRequest;
 import com.webshop.authorization.RegisterRequest;
 import com.webshop.cart.Cart;
+import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -62,10 +65,12 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(registerRequest.password));
         user.setRole("USER");
 
+        User newUser = userRepository.save(user);
         Cart cart = new Cart();
-        cart.setUserId(user.getId());
+        cart.setUserId(newUser.getId());
+        cartRepository.save(cart);
 
-        return userRepository.save(user);
+        return newUser;
     }
 
     @Override
@@ -74,8 +79,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if(user.getRole().equals("ADMIN")) {
+            throw new IllegalArgumentException("Admin cannot be deleted");
+        }
+        cartRepository.deleteByUserId(id);
         userRepository.delete(user);
     }
 }
