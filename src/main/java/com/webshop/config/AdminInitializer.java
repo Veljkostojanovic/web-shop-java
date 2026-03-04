@@ -28,6 +28,4 @@ public class AdminInitializer {
             userRepository.save(admin);
         }
     }
-
-
 }

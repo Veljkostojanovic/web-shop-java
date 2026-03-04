@@ -1,6 +1,5 @@
 package com.webshop.category;
 
-
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;
@@ -8,11 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -26,7 +23,7 @@ public class CategoryServiceImplTest {
     private CategoryServiceImpl categoryService;
 
     private Category category;
-    private CategoryDTO  categoryDTO;
+    private CategoryDTO categoryDTO;
 
     @BeforeEach
     public void setup(){

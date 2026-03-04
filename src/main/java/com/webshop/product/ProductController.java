@@ -1,6 +1,7 @@
 package com.webshop.product;
 
 import com.webshop.category.CategoryDTO;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO){
         ProductDTO newProductDTO = productService.addProduct(productDTO);
         return ResponseEntity.ok(newProductDTO);
     }
@@ -34,7 +35,7 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ProductDTO> deleteProductById(@PathVariable Long id){
         productService.deleteProduct(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/exists")
@@ -57,7 +58,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO){
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO){
         return ResponseEntity.ok().body(productService.updateProduct(id, productDTO));
     }
 }
