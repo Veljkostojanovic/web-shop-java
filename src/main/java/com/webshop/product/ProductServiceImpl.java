@@ -1,8 +1,10 @@
 package com.webshop.product;
 
 import com.webshop.category.CategoryRepository;
+import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,11 +23,11 @@ public class ProductServiceImpl implements ProductService{
     @Transactional
     public ProductDTO addProduct(@Valid ProductDTO productDTO) {
         if(productDTO == null){
-            throw new IllegalArgumentException("product cannot be null");
+            throw new IllegalArgumentException("Product cannot be null");
         }
 
         if(productRepository.existsByNameIgnoreCase(productDTO.getName())){
-            throw new IllegalArgumentException("product name already exists");
+            throw new ResourceConflictException("Product name already exists");
         }
 
         Product product = ProductMapper.toEntity(productDTO);
@@ -43,7 +45,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional
     public ProductDTO updateProduct(Long productId, @Valid ProductDTO productDTO) {
         if(productDTO == null)throw new IllegalArgumentException("Product cannot be null");
-        if(productId == null)throw new IllegalArgumentException("ProductId cannot be null");
+        if(productId == null)throw new IllegalArgumentException("Product id cannot be null");
 
 
         Product existing = productRepository.findById(productId)
@@ -68,10 +70,10 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long productId) {
         if(productId == null){
-            throw new  IllegalArgumentException("ProductId cannot be null");
+            throw new  IllegalArgumentException("Product id cannot be null");
         }
 
-        Product product =  productRepository.findById(productId)
+        Product product = productRepository.findById(productId)
                             .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
 
         return ProductMapper.toDTO(product);
@@ -90,7 +92,7 @@ public class ProductServiceImpl implements ProductService{
     @Transactional(readOnly = true)
     public List<ProductDTO> findByCategoryId(Long categoryId) {
         if(categoryId == null){
-            throw new  IllegalArgumentException("CategoryId cannot be null");
+            throw new  IllegalArgumentException("Category id cannot be null");
         }
 
         return productRepository.findByCategoryId(categoryId)
@@ -112,11 +114,11 @@ public class ProductServiceImpl implements ProductService{
     @Transactional
     public boolean deleteProduct(Long productId) {
         if(productId == null){
-            throw new IllegalArgumentException("ProductId cannot be null");
+            throw new IllegalArgumentException("Product id cannot be null");
         }
 
         if(!productRepository.existsById(productId)){
-            return false;
+            throw new ResourceNotFoundException("Product id not found");
         }
         productRepository.deleteById(productId);
         return true;

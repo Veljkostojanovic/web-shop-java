@@ -128,6 +128,8 @@ public class ProductControllerTest {
         void getProductById_shoudlReturn400() throws Exception{
             mockMvc.perform(get("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
+
+            verifyNoInteractions(productService);
         }
 
         @Test
@@ -248,6 +250,8 @@ public class ProductControllerTest {
         void deleteProductById_shouldReturn400_badRequest() throws Exception{
             mockMvc.perform(delete("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
+
+            verify(productService, never()).deleteProduct(anyLong());
         }
     }
 
@@ -279,6 +283,8 @@ public class ProductControllerTest {
         void updateProductById_shouldReturn400_badId() throws Exception{
             mockMvc.perform(put("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
+
+            verify(productService, never()).updateProduct(anyLong(), any(ProductDTO.class));
         }
 
         @Test
@@ -291,9 +297,8 @@ public class ProductControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
+
+            verify(productService, never()).updateProduct(anyLong(), any(ProductDTO.class));
         }
     }
-
-
-
 }
