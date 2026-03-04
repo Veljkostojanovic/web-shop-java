@@ -1,7 +1,9 @@
 package com.webshop.authorization;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "Username cannot be empty")
     public String username;

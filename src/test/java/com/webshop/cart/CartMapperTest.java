@@ -2,11 +2,9 @@ package com.webshop.cart;
 
 import com.webshop.cartItem.CartItem;
 import com.webshop.cartItem.CartItemDTO;
-import com.webshop.category.CategoryDTO;
 import com.webshop.product.ProductDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.List;
 

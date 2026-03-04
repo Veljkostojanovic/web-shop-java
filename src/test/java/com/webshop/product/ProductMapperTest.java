@@ -2,7 +2,6 @@ package com.webshop.product;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 
 public class ProductMapperTest {

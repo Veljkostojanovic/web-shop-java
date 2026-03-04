@@ -1,8 +1,5 @@
 package com.webshop.category;
 
-import com.webshop.category.Category;
-import com.webshop.category.CategoryDTO;
-import com.webshop.category.CategoryMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
