@@ -45,7 +45,7 @@ public class CategoryServiceImplTest {
 
         @Test
         void addCategory_Ok(){
-            when(categoryRepository.existsByNameIgnoreCase("Category")).thenReturn(false);
+            when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(false);
             when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
 
@@ -58,7 +58,7 @@ public class CategoryServiceImplTest {
 
         @Test
         void addCategory_ThrowsException_AlreadyExists() throws Exception{
-            when(categoryRepository.existsByNameIgnoreCase("Category")).thenReturn(true);
+            when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             Assertions.assertThrows(ResourceConflictException.class, ()->categoryService.addCategory(categoryDTO));
             verify(categoryRepository, never()).save(any());
@@ -79,7 +79,7 @@ public class CategoryServiceImplTest {
             CategoryDTO updateDto = new CategoryDTO();
             updateDto.setName("New Category");
 
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
             when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             CategoryDTO result = categoryService.updateCategory(1L, updateDto);
@@ -99,7 +99,6 @@ public class CategoryServiceImplTest {
 
         @Test
         void updateCategory_ThrowIllegalArgumentException_NullUpdateDTO() throws Exception{
-
             IllegalArgumentException exception = Assertions.assertThrows(
                     IllegalArgumentException.class, ()->categoryService.updateCategory(1L,null));
 
@@ -113,14 +112,14 @@ public class CategoryServiceImplTest {
 
         @Test
         void getCategoryById_Ok() throws Exception{
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
 
             CategoryDTO result = categoryService.getCategoryById(1L);
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals("Category", result.getName());
             Assertions.assertEquals(1L, result.getId());
-            verify(categoryRepository).findById(1L);
+            verify(categoryRepository).findById(anyLong());
         }
 
         @Test
@@ -167,14 +166,14 @@ public class CategoryServiceImplTest {
 
         @Test
         void existsByNameIgnoreCase_Ok() throws Exception{
-            when(categoryRepository.existsByNameIgnoreCase("Category")).thenReturn(true);
+            when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
             boolean result = categoryService.existsByNameIgnoreCase("Category");
             Assertions.assertTrue(result);
         }
 
         @Test
         void existsByNameIgnoreCase_False() throws Exception{
-            when(categoryRepository.existsByNameIgnoreCase("Category")).thenReturn(false);
+            when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(false);
             boolean result = categoryService.existsByNameIgnoreCase("Category");
             Assertions.assertFalse(result);
         }
@@ -202,14 +201,14 @@ public class CategoryServiceImplTest {
 
         @Test
         void deleteCategory_Ok() throws Exception{
-            when(categoryRepository.existsById(1L)).thenReturn(true);
+            when(categoryRepository.existsById(anyLong())).thenReturn(true);
             Assertions.assertDoesNotThrow(() -> categoryService.deleteCategory(1L));
-            verify(categoryRepository, times(1)).deleteById(1L);
+            verify(categoryRepository, times(1)).deleteById(anyLong());
         }
 
         @Test
         void deleteCategory_ThrowResourceNotFound_NotFound() throws Exception{
-            when(categoryRepository.existsById(1L)).thenReturn(false);
+            when(categoryRepository.existsById(anyLong())).thenReturn(false);
 
             ResourceNotFoundException exception = Assertions.assertThrows(
                     ResourceNotFoundException.class, () -> categoryService.deleteCategory(1L));

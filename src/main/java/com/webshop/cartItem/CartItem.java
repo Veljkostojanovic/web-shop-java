@@ -26,10 +26,4 @@ public class CartItem {
     private Long productId;
 
     private int quantity;
-
-    public CartItem(Cart cart, Long productId, int quantity) {
-        this.cart = cart;
-        this.productId = productId;
-        this.quantity = quantity;
-    }
 }
