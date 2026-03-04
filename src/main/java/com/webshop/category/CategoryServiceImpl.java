@@ -1,5 +1,6 @@
 package com.webshop.category;
 
+import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDTO addCategory(CategoryDTO categoryDTO) {
         if(categoryDTO == null)throw new IllegalArgumentException("CategoryDTO cannot be null");
-        if(categoryRepository.existsByNameIgnoreCase(categoryDTO.getName()))throw new IllegalArgumentException("Category already exists");
+        if(categoryRepository.existsByNameIgnoreCase(categoryDTO.getName()))throw new ResourceConflictException("Category already exists");
 
         Category category = CategoryMapper.toEntity(categoryDTO);
         Category saved =  categoryRepository.save(category);
@@ -72,7 +73,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByNameIgnoreCase(String name) {
-        if(name == null || name.isEmpty())throw new  IllegalArgumentException("Name cannot be null or empty");
+        if (name == null || name.isBlank())throw new  IllegalArgumentException("Name cannot be null or empty");
         return categoryRepository.existsByNameIgnoreCase(name);
     }
 }

@@ -1,64 +1,178 @@
 package com.webshop.category;
 
 
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webshop.JWT.CustomUserDetailsService;
+import com.webshop.JWT.JwtService;
+import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.test.web.servlet.client.RestTestClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
+import org.springframework.http.MediaType;
 
-
+@WebMvcTest(CategoryController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class})
 class CategoryControllerTest {
 
-    RestTestClient client;
-    CategoryService categoryService;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp(){
-        categoryService = Mockito.mock(CategoryService.class);
+    @MockitoBean
+    private JwtService jwtService;
 
-        Mockito.when(categoryService.getAllCategories())
-                .thenReturn(
-                        List.of(new CategoryDTO(1L, "Patike"))
-                );
+    @MockitoBean
+    private CategoryService categoryService;
 
-        client = RestTestClient.bindToController(new CategoryController(categoryService)).build();
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    /* -------------------- POST -------------------- */
+
+    @Test
+    void addCategory_shouldReturn201AndCategory() throws Exception {
+        CategoryDTO request = new CategoryDTO(null, "Category");
+        CategoryDTO response = new CategoryDTO(1L, "Category");
+
+        when(categoryService.addCategory(any(CategoryDTO.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Category"));
+
+        verify(categoryService).addCategory(any(CategoryDTO.class));
     }
 
     @Test
-    void addingCategorySuccessfully() throws Exception {
+    void addCategory_shouldReturn400() throws Exception {
+        CategoryDTO invalidRequest = new CategoryDTO(null, "");
+
+        mockMvc.perform(post("/api/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(categoryService);
+    }
+
+    /* -------------------- GET by ID -------------------- */
+
+    @Test
+    void getCategoryById_shouldReturnCategory() throws Exception {
+        CategoryDTO dto = new CategoryDTO(1L, "Category");
+
+        when(categoryService.getCategoryById(1L))
+                .thenReturn(dto);
+
+        mockMvc.perform(get("/api/categories/{id}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Category"));
+
+        verify(categoryService).getCategoryById(1L);
     }
 
     @Test
-    void getCategoryById() {
+     void getCategoryById_shouldReturn404() throws Exception {
+        when(categoryService.getCategoryById(1L)).thenThrow(new ResourceNotFoundException("Category not found"));
+
+        mockMvc.perform(get("/api/categories/{id}", 1L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Category not found"));
     }
 
     @Test
-    void getAllCategories() {
-        List<CategoryDTO> allCategories =
-                client.get()
-                        .uri("/api/categories")
-                        .exchange()
-                        .expectStatus().isOk()
-                        .expectBody(new ParameterizedTypeReference<List<CategoryDTO>>() {})
-                        .returnResult()
-                        .getResponseBody();
+    void getCategoryById_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/api/categories/{id}", "abc"))
+                .andExpect(status().isBadRequest());
+    }
 
-        assertThat(allCategories).isNotNull();
-        assertThat(allCategories).hasSize(1);
-        assertThat(allCategories.get(0).getId()).isEqualTo(1L);
-        Mockito.verify(categoryService).getAllCategories();
+    /* -------------------- GET all -------------------- */
+
+    @Test
+    void getAllCategories_shouldReturnList() throws Exception {
+        List<CategoryDTO> categories = List.of(
+                new CategoryDTO(1L, "Shoes"),
+                new CategoryDTO(2L, "Clothes")
+        );
+
+        when(categoryService.getAllCategories())
+                .thenReturn(categories);
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Shoes"))
+                .andExpect(jsonPath("$[1].name").value("Clothes"));
+
+        verify(categoryService).getAllCategories();
+    }
+
+    /* -------------------- DELETE -------------------- */
+
+    @Test
+    void deleteCategoryById_shouldReturn204() throws Exception {
+        doNothing().when(categoryService).deleteCategory(1L);
+
+        mockMvc.perform(delete("/api/categories/{id}", 1L))
+                        .andExpect(status().isNoContent());
+
+        verify(categoryService).deleteCategory(1L);
     }
 
     @Test
-    void deleteCategoryById() {
+    void deleteCategoryById_shouldReturn404() throws Exception{
+        doThrow(new ResourceNotFoundException("Category not found"))
+                .when(categoryService).deleteCategory(1L);
+
+        mockMvc.perform(delete("/api/categories/{id}", 1L))
+                .andExpect(status().isNotFound());
+
+        verify(categoryService).deleteCategory(1L);
+    }
+
+    /* -------------------- EXISTS -------------------- */
+
+    @Test
+    void categoryExists_shouldReturn200_whenExists() throws Exception {
+        when(categoryService.existsByNameIgnoreCase("Category"))
+                .thenReturn(true);
+
+        mockMvc.perform(get("/api/categories/exists")
+                        .param("name", "Category"))
+                .andExpect(status().isOk());
+
+        verify(categoryService).existsByNameIgnoreCase("Category");
     }
 
     @Test
-    void categoryExistsByNameIgnoreCase() {
+    void categoryExists_shouldReturn404_whenNotExists() throws Exception {
+        when(categoryService.existsByNameIgnoreCase("Category"))
+                .thenReturn(false);
+
+        mockMvc.perform(get("/api/categories/exists")
+                        .param("name", "Category"))
+                .andExpect(status().isNotFound());
+
+        verify(categoryService).existsByNameIgnoreCase("Category");
     }
 }
