@@ -1,6 +1,5 @@
 package com.webshop.product;
 
-import com.webshop.category.CategoryDTO;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

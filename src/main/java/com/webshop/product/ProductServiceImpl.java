@@ -1,13 +1,14 @@
 package com.webshop.product;
 
+import com.webshop.category.Category;
 import com.webshop.category.CategoryRepository;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,20 +22,24 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductDTO addProduct(@Valid ProductDTO productDTO) {
-        if(productDTO == null){
+    public ProductDTO addProduct(ProductDTO productDTO) {
+        if (productDTO == null) {
             throw new IllegalArgumentException("Product cannot be null");
         }
 
-        if(productRepository.existsByNameIgnoreCase(productDTO.getName())){
+        if (productRepository.existsByNameIgnoreCase(productDTO.getName())) {
             throw new ResourceConflictException("Product name already exists");
         }
 
         Product product = ProductMapper.toEntity(productDTO);
 
-        if(productDTO.getCategory().getId() != null){
-            product.setCategory(categoryRepository.
-                    findById(productDTO.getCategory().getId()).orElseThrow( () -> new ResourceNotFoundException("Category id not found")));
+        if (productDTO.getCategory() != null && productDTO.getCategory().getId() != null) {
+            Long catId = productDTO.getCategory().getId();
+            Category category = categoryRepository.findById(catId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + catId));
+            product.setCategory(category);
+        } else {
+            product.setCategory(null);
         }
 
         Product saved = productRepository.save(product);
@@ -43,7 +48,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductDTO updateProduct(Long productId, @Valid ProductDTO productDTO) {
+    public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
         if(productDTO == null)throw new IllegalArgumentException("Product cannot be null");
         if(productId == null)throw new IllegalArgumentException("Product id cannot be null");
 

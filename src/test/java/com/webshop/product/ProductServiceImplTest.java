@@ -7,6 +7,7 @@ import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -71,7 +72,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void addProduct_shouldThrowIllegalArgumentException() {
+        void addProduct_shouldThrow_IllegalArgumentException_productIsNull() {
             IllegalArgumentException exception = Assertions.assertThrows(
                     IllegalArgumentException.class, () -> productService.addProduct(null));
 
@@ -80,7 +81,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void addProduct_shouldThrow_ResourceConflictException() {
+        void addProduct_shouldThrow_ResourceConflictException_productAlreadyExists() {
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             ResourceConflictException exception = Assertions.assertThrows(
@@ -92,7 +93,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void addProduct_shouldThrow_ResourceNotFoundException() {
+        void addProduct_shouldThrow_ResourceNotFoundException_categoryDoesNotExist() {
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(false);
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -101,8 +102,34 @@ public class ProductServiceImplTest {
             );
 
             Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Category id not found", exception.getMessage());
+            Assertions.assertEquals("Category not found with id: 1", exception.getMessage());
             verify(productRepository, never()).save(any());
+        }
+
+        @Test
+        void addProduct_NoCategoryId_SavesProductWithoutCategory() {
+            productDTO.getCategory().setId(null);
+
+            when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
+            when(productRepository.save(any(Product.class))).thenReturn(new Product());
+
+            productService.addProduct(productDTO);
+
+            verify(categoryRepository, never()).findById(anyLong());
+            verify(productRepository, times(1)).save(any(Product.class));
+        }
+
+        @Test
+        void addProduct_CategoryObjectIsNull_SavesProductWithNullCategory() {
+            productDTO.setCategory(null);
+
+            when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
+            when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArguments()[0]);
+
+            productService.addProduct(productDTO);
+
+            verify(categoryRepository, never()).findById(anyLong());
+            verify(productRepository).save(argThat(product -> product.getCategory() == null));
         }
     }
 
