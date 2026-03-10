@@ -1,4 +1,3 @@
-import { Search, Heart, ShoppingBag } from 'lucide-react';
 import { LogOut, UserPlus, LogIn } from 'lucide-react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { ProductList } from './features/products/components/ProductList';
@@ -9,7 +8,7 @@ function App() {
     const isLoggedIn = !!localStorage.getItem('token');
 
     const handleLogout = () => {
-        localStorage.removeItem('token'); // Clear the token
+        localStorage.removeItem('token');
         window.location.reload();
     };
 
@@ -42,7 +41,7 @@ function App() {
             </div>
 
             <nav className="bg-[#1a1a1a] text-white px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-                {/* Make the Logo a Link back to Home */}
+
                 <Link to="/" className="text-2xl font-extrabold tracking-tighter cursor-pointer">
                     WEBSHOP
                 </Link>
