@@ -1,0 +1,41 @@
+package com.webshop.category;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+public class CategoryMapperTest {
+    @Test
+    void toDto(){
+        Category category = new Category(1L, "Category", null);
+
+        CategoryDTO categoryDTO = CategoryMapper.toDTO(category);
+
+        Assertions.assertNotNull(categoryDTO);
+        Assertions.assertEquals(1L, categoryDTO.getId());
+        Assertions.assertEquals("Category", categoryDTO.getName());
+    }
+
+    @Test
+    void fromDto(){
+        CategoryDTO categoryDTO = new CategoryDTO(1L, "Category");
+
+        Category category = CategoryMapper.toEntity(categoryDTO);
+
+        Assertions.assertNotNull(category);
+        Assertions.assertNull(category.getId());
+        Assertions.assertEquals("Category", category.getName());
+        Assertions.assertNull(category.getProducts());
+    }
+
+    @Test
+    void toDTO_null(){
+        CategoryDTO categoryDTO = CategoryMapper.toDTO(null);
+        Assertions.assertNull(categoryDTO);
+    }
+
+    @Test
+    void toEntity_null(){
+        Category category = CategoryMapper.toEntity(null);
+        Assertions.assertNull(category);
+    }
+}
