@@ -2,7 +2,6 @@ package com.webshop.user;
 
 import com.webshop.authorization.LoginRequest;
 import com.webshop.authorization.RegisterRequest;
-
 import java.util.List;
 
 public interface UserService {

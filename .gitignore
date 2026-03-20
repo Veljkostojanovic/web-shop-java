@@ -38,3 +38,5 @@ build/
 # You can ignore local logs or temp files
 *.log
 
+# Local data seeds
+data.sql

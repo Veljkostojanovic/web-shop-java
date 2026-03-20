@@ -3,7 +3,6 @@ package com.webshop.cart;
 import com.webshop.cartItem.CartItem;
 import jakarta.persistence.*;
 import lombok.*;
-import com.webshop.user.User;
 import java.util.ArrayList;
 import java.util.List;
 

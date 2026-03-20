@@ -3,7 +3,6 @@ package com.webshop.order;
 import com.webshop.product.Product;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 
 public class OrderItemMapperTest {

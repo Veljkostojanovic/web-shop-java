@@ -3,6 +3,7 @@ package com.webshop.user;
 import com.webshop.authorization.LoginRequest;
 import com.webshop.authorization.RegisterRequest;
 import com.webshop.cart.Cart;
+import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -75,6 +77,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(Long id) {
+        cartRepository.deleteByUserId(id);
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.delete(user);
     }

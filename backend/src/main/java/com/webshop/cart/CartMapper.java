@@ -3,7 +3,6 @@ package com.webshop.cart;
 import com.webshop.cartItem.CartItem;
 import com.webshop.cartItem.CartItemDTO;
 import com.webshop.product.ProductDTO;
-
 import java.math.BigDecimal;
 import java.util.List;
 
