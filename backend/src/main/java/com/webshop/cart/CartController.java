@@ -1,5 +1,6 @@
 package com.webshop.cart;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class CartController {
     @PostMapping("/{userId}/items")
     public ResponseEntity<CartDTO> addProductToCart(
             @PathVariable Long userId,
-            @RequestBody AddItemRequest request
+            @Valid @RequestBody AddItemRequest request
     ){
         CartDTO updatedCart = cartService.addProductToCart(userId, request.getProductId(), request.getQuantity());
         return ResponseEntity.ok(updatedCart);
