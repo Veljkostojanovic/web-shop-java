@@ -10,7 +10,7 @@ import java.util.List;
 // http://localhost:8080/api/products
 @AllArgsConstructor
 @RestController
-@RequestMapping("api/products")
+@RequestMapping("/api/products")
 public class ProductController {
     private final ProductService productService;
 

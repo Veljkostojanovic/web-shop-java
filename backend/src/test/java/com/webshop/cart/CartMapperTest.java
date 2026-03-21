@@ -55,6 +55,5 @@ public class CartMapperTest {
         Assertions.assertEquals(1, result.getQuantity());
         Assertions.assertEquals(BigDecimal.valueOf(500), result.getTotalPrice());
         Assertions.assertEquals(BigDecimal.valueOf(500), result.getProductPrice());
-
     }
 }

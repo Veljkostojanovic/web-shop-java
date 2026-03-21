@@ -3,7 +3,6 @@ package com.webshop.order;
 import com.webshop.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Getter
