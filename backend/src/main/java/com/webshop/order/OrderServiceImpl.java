@@ -97,6 +97,21 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
+    @Override
+    public OrderEntity getById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow( () -> new ResourceNotFoundException("Order not found with id: " + orderId) );
+    }
+
+    @Override
+    public void markAsPaid(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow();
+
+        order.setStatus(OrderStatus.PAID);
+        orderRepository.save(order);
+    }
+
     private OrderDTO mapToDTO(OrderEntity order){
         var itemsDTO = order.getOrderItems().stream()
                 .map(this::mapItemToDTO)
