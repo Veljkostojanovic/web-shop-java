@@ -12,6 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.category")
+    List<Product> findAll();
     List<Product> findByCategoryId(Long categoryId);
     List<Product> findByNameContainingIgnoreCase(String name);
     Optional<Product> findById(Long id);

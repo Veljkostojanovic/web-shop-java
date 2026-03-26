@@ -10,9 +10,15 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
-    @Query("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderItems WHERE o.id = :id")
+    @Query("SELECT DISTINCT o FROM OrderEntity o " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product p " +
+            "LEFT JOIN FETCH p.category WHERE o.id = :id")
     Optional<OrderEntity> findById(@Param("id") Long id);
 
-    @Query("SELECT o from OrderEntity o LEFT JOIN FETCH o.orderItems WHERE o.user.id = :userId")
+    @Query("SELECT DISTINCT o from OrderEntity o " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product p " +
+            "LEFT JOIN FETCH p.category WHERE o.user.id = :userId")
     List<OrderEntity> findByUserId(@Param("userId") Long userId);
 }

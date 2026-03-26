@@ -2,9 +2,11 @@ package com.webshop.cart;
 
 import com.webshop.cartItem.CartItem;
 import com.webshop.cartItem.CartItemDTO;
+import com.webshop.cartItem.CartItemRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ public class CartServiceImpl implements CartService{
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Override
     public CartDTO getOrCreateCart(Long userId) {
@@ -76,11 +79,12 @@ public class CartServiceImpl implements CartService{
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
         cartRepository.findByUserId(userId)
                 .ifPresent( cart -> {
+                    cartItemRepository.deleteByCartId(cart.getId());
                     cart.getItems().clear();
-                    cartRepository.save(cart);
                 });
     }
 
