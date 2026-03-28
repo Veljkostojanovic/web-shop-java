@@ -1,4 +1,21 @@
+version: '3.8'
+
 services:
+  web-shop:
+    container_name: web-shop-app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    restart: unless-stopped
+
   db:
     container_name: web-shop-db
     image: postgres:16
