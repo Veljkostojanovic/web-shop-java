@@ -10,9 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,10 +25,9 @@ public class StripeWebhookController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<String> handleWebhook(HttpServletRequest request) throws Exception {
-
-        String payload = request.getReader().lines().collect(Collectors.joining());
-        String sigHeader = request.getHeader("Stripe-Signature");
+    public ResponseEntity<String> handleWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader) throws Exception {
 
         Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
 

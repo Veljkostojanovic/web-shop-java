@@ -2,6 +2,7 @@ package com.webshop.payment;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
 import com.webshop.order.OrderEntity;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +15,16 @@ public class PaymentService {
 
     public PaymentIntent createPaymentIntent(OrderEntity order) throws StripeException {
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("amount", order.getTotalAmount().multiply(BigDecimal.valueOf(100)).intValue());
-        params.put("currency", "usd");
+        long amountInCents = order.getTotalAmount()
+                .multiply(BigDecimal.valueOf(100))
+                .longValue();
 
-        params.put("metadata", Map.of(
-                "orderId", order.getId().toString()
-        ));
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                .setAmount(amountInCents)
+                .setCurrency("usd")
+                .addPaymentMethodType("card")
+                .putMetadata("orderId", order.getId().toString())
+                .build();
 
         return PaymentIntent.create(params);
     }
