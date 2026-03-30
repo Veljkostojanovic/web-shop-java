@@ -6,6 +6,8 @@ target/
 
 # Secrets
 .env
+.env.local
+.env.*.local
 
 ### STS ###
 .apt_generated

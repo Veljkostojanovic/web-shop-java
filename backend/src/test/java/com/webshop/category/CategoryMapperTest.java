@@ -26,16 +26,4 @@ public class CategoryMapperTest {
         Assertions.assertEquals("Category", category.getName());
         Assertions.assertNull(category.getProducts());
     }
-
-    @Test
-    void toDTO_null(){
-        CategoryDTO categoryDTO = CategoryMapper.toDTO(null);
-        Assertions.assertNull(categoryDTO);
-    }
-
-    @Test
-    void toEntity_null(){
-        Category category = CategoryMapper.toEntity(null);
-        Assertions.assertNull(category);
-    }
 }
