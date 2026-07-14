@@ -13,6 +13,7 @@ import com.webshop.product.Product;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "cart_items")
 public class CartItem {
 
     @Id

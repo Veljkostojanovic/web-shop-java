@@ -2,6 +2,7 @@ package com.webshop.user;
 
 import com.webshop.authorization.LoginRequest;
 import com.webshop.authorization.RegisterRequest;
+import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ public class UserServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private CartRepository cartRepository;
 
     @InjectMocks
     private UserServiceImpl userServiceImpl;
@@ -258,8 +262,12 @@ public class UserServiceImplTest {
         @Test
         void deleteUserById_Ok(){
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(cartRepository.existsByUserId(anyLong())).thenReturn(true);
+
             userServiceImpl.deleteUserById(anyLong());
             verify(userRepository).findById(anyLong());
+            verify(cartRepository).deleteByUserId(anyLong());
+            verify(cartRepository).existsByUserId(anyLong());
         }
         
         @Test
@@ -275,7 +283,5 @@ public class UserServiceImplTest {
             Assertions.assertEquals("User not found", exception.getMessage());
             verify(userRepository).findById(anyLong());
         }
-
     }
-
 }

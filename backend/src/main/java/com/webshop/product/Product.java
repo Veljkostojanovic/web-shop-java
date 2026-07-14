@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "products")
 public class Product {
 
     @Id
@@ -25,6 +26,7 @@ public class Product {
     private BigDecimal price;
     private int stock;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
     private Category category;
 }

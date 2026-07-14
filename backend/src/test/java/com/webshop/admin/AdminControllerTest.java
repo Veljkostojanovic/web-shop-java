@@ -56,7 +56,7 @@ public class AdminControllerTest {
     void deleteUser_ShouldCallServiceAndReturn200() throws Exception {
         mockMvc.perform(delete("/api/admin/users/1")
                         .with(csrf()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(userService).deleteUserById(1L);
     }
