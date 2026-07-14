@@ -279,6 +279,34 @@ public class ProductServiceImplTest {
         }
 
         @Test
+        void getAllProducts_pageable_returnPage(){
+            org.springframework.data.domain.PageImpl<Product> page = new org.springframework.data.domain.PageImpl<>(List.of(product), org.springframework.data.domain.PageRequest.of(0,10), 1);
+            when(productRepository.findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+            org.springframework.data.domain.Page<ProductDTO> result = productService.getAllProducts(org.springframework.data.domain.PageRequest.of(0,10));
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getTotalElements());
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertEquals(1L, result.getContent().get(0).getId());
+            Assertions.assertEquals("Product", result.getContent().get(0).getName());
+            verify(productRepository).findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+        }
+
+        @Test
+        void getAllProducts_pageable_returnsEmptyPage(){
+            org.springframework.data.domain.PageImpl<Product> page = new org.springframework.data.domain.PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(0,10), 0);
+            when(productRepository.findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+            org.springframework.data.domain.Page<ProductDTO> result = productService.getAllProducts(org.springframework.data.domain.PageRequest.of(0,10));
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(0, result.getTotalElements());
+            Assertions.assertEquals(0, result.getContent().size());
+            verify(productRepository).findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+        }
+
+        @Test
         void findByCategoryId_returnsListOfProducts(){
             when(productRepository.findByCategoryId(anyLong())).thenReturn(List.of(product));
 

@@ -92,32 +92,65 @@ public class ProductControllerTest {
 
         @Test
         void getAllProducts_EmptyList() throws Exception{
-            when(productService.getAllProducts()).thenReturn(Collections.emptyList());
+            org.springframework.data.domain.Page<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(Collections.emptyList(), org.springframework.data.domain.PageRequest.of(0,10), 0);
+            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(0));
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(0));
 
-            verify(productService).getAllProducts();
+            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
         }
 
         @Test
         void getAllProducts_shouldReturnsList() throws Exception{
-            List<ProductDTO> productDTOList = List.of(productDTO);
+            java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
+            org.springframework.data.domain.Page<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 1);
 
-            when(productService.getAllProducts()).thenReturn(productDTOList);
+            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].name").value(productDTOList.getFirst().getName()))
-                    .andExpect(jsonPath("$[0].description").value(productDTOList.getFirst().getDescription()))
-                    .andExpect(jsonPath("$[0].price").value(productDTOList.getFirst().getPrice()))
-                    .andExpect(jsonPath("$[0].id").value(productDTOList.getFirst().getId()));
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].name").value(productDTOList.get(0).getName()))
+                    .andExpect(jsonPath("$.content[0].description").value(productDTOList.get(0).getDescription()))
+                    .andExpect(jsonPath("$.content[0].price").value(productDTOList.get(0).getPrice()))
+                    .andExpect(jsonPath("$.content[0].id").value(productDTOList.get(0).getId()));
 
-            verify(productService).getAllProducts();
+            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+        }
+
+        @Test
+        void getAllProducts_pageable_shouldReturnPage() throws Exception{
+            java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
+            org.springframework.data.domain.PageImpl<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 1);
+
+            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1))
+                    .andExpect(jsonPath("$.content[0].name").value(productDTO.getName()));
+
+            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+        }
+
+        @Test
+        void getAllProducts_pageable_shouldReturnEmptyPage() throws Exception{
+            java.util.List<ProductDTO> productDTOList = java.util.List.of();
+            org.springframework.data.domain.PageImpl<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 0);
+
+            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+            mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(0));
+
+            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
         }
 
         @Test
@@ -183,11 +216,11 @@ public class ProductControllerTest {
             when(productService.findByNameContainingIgnoreCase(anyString())).thenReturn(productDTOList);
 
             mockMvc.perform(get("/api/products/search")
-                    .param("name", anyString()))
+                    .param("name", "Product"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(productDTOList.size()))
-                    .andExpect(jsonPath("$[0].name").value(productDTOList.getFirst().getName()));
+                    .andExpect(jsonPath("$[0].name").value(productDTOList.get(0).getName()));
 
             verify(productService).findByNameContainingIgnoreCase(anyString());
         }
@@ -197,7 +230,7 @@ public class ProductControllerTest {
             when(productService.findByNameContainingIgnoreCase(anyString())).thenReturn(Collections.emptyList());
 
             mockMvc.perform(get("/api/products/search")
-                            .param("name", anyString()))
+                            .param("name", "Product"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(0));
@@ -210,7 +243,7 @@ public class ProductControllerTest {
             when(productService.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             mockMvc.perform(get("/api/products/exists")
-                            .param("name", anyString()))
+                            .param("name", "Product"))
                     .andExpect(status().isOk());
 
             verify(productService).existsByNameIgnoreCase(anyString());

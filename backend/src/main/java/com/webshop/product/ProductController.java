@@ -2,8 +2,11 @@ package com.webshop.product;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -21,9 +24,11 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts(){
-        System.out.println(Thread.currentThread());
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductDTO>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(productService.getAllProducts(pageable));
     }
 
     @GetMapping("/{id}")

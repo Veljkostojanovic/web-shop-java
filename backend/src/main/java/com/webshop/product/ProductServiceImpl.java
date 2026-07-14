@@ -4,11 +4,11 @@ import com.webshop.category.Category;
 import com.webshop.category.CategoryRepository;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,6 +91,13 @@ public class ProductServiceImpl implements ProductService{
                 .stream()
                 .map(ProductMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(ProductMapper::toDTO);
     }
 
     @Override

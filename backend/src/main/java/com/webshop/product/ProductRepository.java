@@ -1,6 +1,9 @@
 package com.webshop.product;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +18,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p from Product p JOIN FETCH p.category")
     List<Product> findAll();
+
+    @EntityGraph(attributePaths = {"category"})
+    Page<Product> findAll(Pageable pageable);
+
     List<Product> findByCategoryId(Long categoryId);
     List<Product> findByNameContainingIgnoreCase(String name);
     Optional<Product> findById(Long id);
