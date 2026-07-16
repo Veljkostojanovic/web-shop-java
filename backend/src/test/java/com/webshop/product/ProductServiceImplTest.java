@@ -204,6 +204,28 @@ public class ProductServiceImplTest {
             Assertions.assertEquals("Category not found", exception.getMessage());
             verify(productRepository, never()).save(any(Product.class));
         }
+
+        @Test
+        void updateProduct_categoryIdIsNull(){
+            productDTO.setCategory(null);
+            when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
+
+
+            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productDTO));
+            verify(productRepository).save(any(Product.class));
+            verify(categoryRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        void updateProduct_categoryHasNoId(){
+            productDTO.getCategory().setId(null);
+            when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
+
+
+            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productDTO));
+            verify(productRepository).save(any(Product.class));
+            verify(categoryRepository, never()).findById(anyLong());
+        }
     }
 
     @Nested
@@ -361,9 +383,19 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void existsByNameIgnoreCase_shouldThrowIllegalArgumentException_nameNullorEmpty(){
+        void existsByNameIgnoreCase_shouldThrowIllegalArgumentException_nameIsNull(){
             IllegalArgumentException exception = Assertions.assertThrows(
                     IllegalArgumentException.class, () -> productService.existsByNameIgnoreCase(null));
+
+            Assertions.assertNotNull(exception);
+            Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());
+            verify(productRepository, never()).existsByNameIgnoreCase(anyString());
+        }
+
+        @Test
+        void existsByNameIgnoreCase_shouldThrowIllegalArgumentException_nameIsEmpty(){
+            IllegalArgumentException exception = Assertions.assertThrows(
+                    IllegalArgumentException.class, () -> productService.existsByNameIgnoreCase(""));
 
             Assertions.assertNotNull(exception);
             Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());

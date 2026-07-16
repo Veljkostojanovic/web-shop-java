@@ -283,5 +283,32 @@ public class UserServiceImplTest {
             Assertions.assertEquals("User not found", exception.getMessage());
             verify(userRepository).findById(anyLong());
         }
+
+        @Test
+        void deleteUserById_CheckCartDeletion()
+                throws Exception{
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(cartRepository.existsByUserId(anyLong())).thenReturn(true);
+
+            Assertions.assertDoesNotThrow(() -> userServiceImpl.deleteUserById(1L));
+
+            verify(userRepository, times(1)).findById(1L);
+            verify(cartRepository, times(1)).existsByUserId(1L);
+            verify(cartRepository, times(1)).deleteByUserId(1L);
+            verify(userRepository, times(1)).delete(user);
+        }
+
+        @Test
+        void deleteUserById_NoCart()
+                throws Exception{
+            when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+            when(cartRepository.existsByUserId(anyLong())).thenReturn(false);
+
+            Assertions.assertDoesNotThrow(() -> userServiceImpl.deleteUserById(1L));
+
+            verify(userRepository, times(1)).findById(1L);
+            verify(cartRepository, times(1)).existsByUserId(1L);
+            verify(userRepository, times(1)).delete(user);
+        }
     }
 }
