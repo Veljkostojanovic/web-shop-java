@@ -7,6 +7,7 @@ import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,14 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> search(ProductFilterDto filter, Pageable pageable) {
+        return productRepository.findAll(buildSpecification(filter), pageable)
+                .map(ProductMapper::toDTO);
+    }
 
     @Override
     @Transactional
@@ -144,5 +153,32 @@ public class ProductServiceImpl implements ProductService{
         }
 
         return productRepository.existsByNameIgnoreCase(name);
+    }
+
+    private Specification<Product> buildSpecification(ProductFilterDto filter){
+        Specification<Product> specification = (root, query, cb) -> cb.conjunction();
+
+        if (filter == null) return specification;
+
+        if(filter.getName() != null && !filter.getName().isEmpty()){
+            specification = specification.and(ProductSpecification.hasName(filter.getName()));
+        }
+
+        if(filter.getCategoryId() != null && filter.getCategoryId() >= 1){
+            specification = specification.and(ProductSpecification.hasCategory(filter.getCategoryId()));
+        }
+
+        if(filter.getMaxPrice() != null){
+            specification = specification.and(ProductSpecification.maxPrice(filter.getMaxPrice()));
+        }
+
+        if(filter.getMinPrice() != null){
+            specification = specification.and(ProductSpecification.minPrice(filter.getMinPrice()));
+        }
+
+        if(filter.getStock() != null){
+            specification = specification.and(ProductSpecification.minStock(filter.getStock()));
+        }
+        return specification;
     }
 }

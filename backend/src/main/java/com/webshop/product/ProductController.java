@@ -17,19 +17,26 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
+
+    @GetMapping
+    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter, Pageable pageable) {
+        Page<ProductDTO> page = productService.search(filter, pageable);
+        return ResponseEntity.ok(page);
+    }
+
     @PostMapping
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO){
         ProductDTO newProductDTO = productService.addProduct(productDTO);
         return ResponseEntity.ok(newProductDTO);
     }
 
-    @GetMapping
+    /*@GetMapping
     public ResponseEntity<Page<ProductDTO>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(productService.getAllProducts(pageable));
-    }
+    }*/
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getById(@PathVariable Long id){
