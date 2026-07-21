@@ -3,6 +3,7 @@ package com.webshop.product;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,7 +18,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findAll();
 
     @EntityGraph(attributePaths = {"category"})
-    Page<Product> findAll(Pageable pageable);
+    Page<Product> findAll(Specification<Product> spec, Pageable pageable);
 
     List<Product> findByCategoryId(Long categoryId);
     List<Product> findByNameContainingIgnoreCase(String name);
