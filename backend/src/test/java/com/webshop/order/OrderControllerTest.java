@@ -1,5 +1,6 @@
 package com.webshop.order;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
 import com.webshop.common.exceptions.ResourceNotFoundException;
@@ -55,7 +56,7 @@ class OrderControllerTest {
         );
     }
 
-    /*@Test
+    @Test
     void checkout_ValidRequest_ReturnsOkAndOrderDTO() throws Exception {
         when(orderService.createOrder(anyLong())).thenReturn(orderDTO);
 
@@ -69,9 +70,9 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.items[0].quantity").value(2));
 
         verify(orderService, times(1)).createOrder(1L);
-    }*/
+    }
 
-    /*@Test
+    @Test
     void checkout_EmptyCartOrNoStock_ThrowsBadRequest() throws Exception {
         when(orderService.createOrder(anyLong()))
                 .thenThrow(new IllegalArgumentException("Cannot checkout with an empty cart!"));
@@ -81,7 +82,7 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Cannot checkout with an empty cart!"));
-    }*/
+    }
 
     @Test
     void getOrder_ExistingOrder_ReturnsOkAndOrderDTO() throws Exception {
@@ -109,36 +110,26 @@ class OrderControllerTest {
 
     @Test
     void getOrdersByUserId_ExistingOrders_ReturnsOkAndList() throws Exception {
-        org.springframework.data.domain.Page<OrderDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(orderDTO));
-        OrderFilterDto filter = new OrderFilterDto();
-        filter.setUserId(1L);
+        when(orderService.getOrdersByUserId(anyLong())).thenReturn(List.of(orderDTO));
 
-        when(orderService.getOrdersByUserId(any(OrderFilterDto.class), any(org.springframework.data.domain.Pageable.class)))
-                .thenReturn(page);
-
-        mockMvc.perform(get("/api/orders/user").param("userId", "1")
+        mockMvc.perform(get("/api/orders/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].orderId").value(100L))
-                .andExpect(jsonPath("$.content[0].totalAmount").value(100.00));
+                .andExpect(jsonPath("$[0].orderId").value(100L))
+                .andExpect(jsonPath("$[0].totalAmount").value(100.00));
 
-        verify(orderService, times(1)).getOrdersByUserId(any(OrderFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+        verify(orderService, times(1)).getOrdersByUserId(1L);
     }
 
     @Test
     void getOrdersByUserId_NoOrders_ReturnsOkAndEmptyList() throws Exception {
-        org.springframework.data.domain.Page<OrderDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
-        OrderFilterDto filter = new OrderFilterDto();
-        filter.setUserId(1L);
+        when(orderService.getOrdersByUserId(anyLong())).thenReturn(List.of());
 
-        when(orderService.getOrdersByUserId(any(OrderFilterDto.class), any(org.springframework.data.domain.Pageable.class)))
-                .thenReturn(page);
-
-        mockMvc.perform(get("/api/orders/user").param("userId", "1")
+        mockMvc.perform(get("/api/orders/user/{userId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
+                .andExpect(jsonPath("$").isEmpty());
 
-        verify(orderService, times(1)).getOrdersByUserId(any(OrderFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+        verify(orderService, times(1)).getOrdersByUserId(1L);
     }
 }

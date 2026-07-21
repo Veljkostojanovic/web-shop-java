@@ -130,7 +130,7 @@ class CartControllerTest {
                         .param("quantity", String.valueOf(5))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Product not found"));
+                        .andExpect(jsonPath("$.message").value("Product not found"));
     }
 
     @Test
@@ -138,7 +138,7 @@ class CartControllerTest {
         when(cartService.removeItemFromCart(anyLong(), anyLong())).thenReturn(cart);
 
         mockMvc.perform(delete("/api/carts/{userId}/items/{productId}", 1L, 1L)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalPrice").value(20.00));
 
