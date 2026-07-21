@@ -13,12 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -27,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class})
+
+@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class, com.webshop.config.SpringDataConfig.class})
 public class ProductControllerTest {
 
     @Autowired
@@ -47,10 +52,23 @@ public class ProductControllerTest {
 
     private ProductDTO productDTO;
     private CategoryDTO categoryDTO;
+    private ProductFilterDto filter;
+
     @BeforeEach
     void setUp() {
         categoryDTO = new CategoryDTO(1L, "Category");
         productDTO = new ProductDTO(1L, "Product", "Description", BigDecimal.valueOf(500), 10, categoryDTO);
+        filter = new ProductFilterDto(
+                "Trail",
+                4L,
+                BigDecimal.valueOf(10),
+                BigDecimal.valueOf(500),
+                1,
+                0,
+                10,
+                "id",
+                "ASC"
+        );
     }
 
     @Nested
@@ -91,24 +109,24 @@ public class ProductControllerTest {
     class ReadProductTests{
 
         @Test
-        void getAllProducts_EmptyList() throws Exception{
-            org.springframework.data.domain.Page<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(Collections.emptyList(), org.springframework.data.domain.PageRequest.of(0,10), 0);
-            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+        void search_EmptyList() throws Exception{
+            Page<ProductDTO> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0,10), 0);
+            when(productService.search(any(ProductFilterDto.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(0));
 
-            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class));
         }
 
         @Test
-        void getAllProducts_shouldReturnsList() throws Exception{
-            java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
-            org.springframework.data.domain.Page<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 1);
+        void search_shouldReturnsList() throws Exception{
+            List<ProductDTO> productDTOList = List.of(productDTO);
+            Page<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
 
-            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
@@ -119,15 +137,15 @@ public class ProductControllerTest {
                     .andExpect(jsonPath("$.content[0].price").value(productDTOList.get(0).getPrice()))
                     .andExpect(jsonPath("$.content[0].id").value(productDTOList.get(0).getId()));
 
-            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class));
         }
 
         @Test
-        void getAllProducts_pageable_shouldReturnPage() throws Exception{
+        void search_pageable_shouldReturnPage() throws Exception{
             java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
-            org.springframework.data.domain.PageImpl<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 1);
+            PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
 
-            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
@@ -135,22 +153,22 @@ public class ProductControllerTest {
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].name").value(productDTO.getName()));
 
-            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class));
         }
 
         @Test
-        void getAllProducts_pageable_shouldReturnEmptyPage() throws Exception{
+        void search_pageable_shouldReturnEmptyPage() throws Exception{
             java.util.List<ProductDTO> productDTOList = java.util.List.of();
-            org.springframework.data.domain.PageImpl<ProductDTO> page = new org.springframework.data.domain.PageImpl<>(productDTOList, org.springframework.data.domain.PageRequest.of(0,10), 0);
+            PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 0);
 
-            when(productService.getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(0));
 
-            verify(productService).getAllProducts(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class));
         }
 
         @Test

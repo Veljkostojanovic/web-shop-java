@@ -6,12 +6,15 @@ import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,12 +23,26 @@ public class ProductServiceImpl implements ProductService{
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "price");
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDTO> search(ProductFilterDto filter, Pageable pageable) {
-        return productRepository.findAll(buildSpecification(filter), pageable)
+    public Page<ProductDTO> search(ProductFilterDto filter) {
+        if(filter == null){
+            filter = new ProductFilterDto();
+        }
+        String sortBy = filter.getSortBy();
+
+        if (sortBy == null || !ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            sortBy = "id";
+        }
+
+        Sort.Direction direction =
+                "DESC".equalsIgnoreCase(filter.getSortDirection()) ?
+                        Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), Sort.by(direction, sortBy));
+        return productRepository.findAll(ProductSpecification.buildSpecification(filter), pageable)
                 .map(ProductMapper::toDTO);
     }
 
@@ -153,32 +170,5 @@ public class ProductServiceImpl implements ProductService{
         }
 
         return productRepository.existsByNameIgnoreCase(name);
-    }
-
-    private Specification<Product> buildSpecification(ProductFilterDto filter){
-        Specification<Product> specification = (root, query, cb) -> cb.conjunction();
-
-        if (filter == null) return specification;
-
-        if(filter.getName() != null && !filter.getName().isEmpty()){
-            specification = specification.and(ProductSpecification.hasName(filter.getName()));
-        }
-
-        if(filter.getCategoryId() != null && filter.getCategoryId() >= 1){
-            specification = specification.and(ProductSpecification.hasCategory(filter.getCategoryId()));
-        }
-
-        if(filter.getMaxPrice() != null){
-            specification = specification.and(ProductSpecification.maxPrice(filter.getMaxPrice()));
-        }
-
-        if(filter.getMinPrice() != null){
-            specification = specification.and(ProductSpecification.minPrice(filter.getMinPrice()));
-        }
-
-        if(filter.getStock() != null){
-            specification = specification.and(ProductSpecification.minStock(filter.getStock()));
-        }
-        return specification;
     }
 }

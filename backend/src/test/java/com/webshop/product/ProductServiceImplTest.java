@@ -11,6 +11,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -231,6 +237,223 @@ public class ProductServiceImplTest {
     @Nested
     @DisplayName("Reading Product Tests")
     class ReadProductTests{
+
+        @Test
+        void searchProduct_Ok() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto("Product", 1L, BigDecimal.valueOf(100), BigDecimal.valueOf(1000), 5, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getTotalElements());
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertEquals("Product", result.getContent().get(0).getName());
+            Assertions.assertEquals(BigDecimal.valueOf(500), result.getContent().get(0).getPrice());
+            Assertions.assertEquals("Description", result.getContent().get(0).getDescription());
+            Assertions.assertEquals(10, result.getContent().get(0).getStock());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withNameFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto("Product", null, null, null, null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertEquals("Product", result.getContent().get(0).getName());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withCategoryIdFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto(null, 1L, null, null, null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertEquals(1L, result.getContent().get(0).getId());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withMinPriceFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto(null, null, BigDecimal.valueOf(100), null, null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertTrue(result.getContent().get(0).getPrice().compareTo(BigDecimal.valueOf(100)) >= 0);
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withMaxPriceFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto(null, null, null, BigDecimal.valueOf(1000), null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertTrue(result.getContent().get(0).getPrice().compareTo(BigDecimal.valueOf(1000)) <= 0);
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withStockFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto(null, null, null, null, 5, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            Assertions.assertTrue(result.getContent().get(0).getStock() >= 5);
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withMultipleFilters() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto("Product", 1L, BigDecimal.valueOf(100), BigDecimal.valueOf(1000), 5, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+            ProductDTO resultProduct = result.getContent().get(0);
+
+            Assertions.assertEquals("Product", resultProduct.getName());
+            Assertions.assertEquals(1L, resultProduct.getCategory().getId());
+            Assertions.assertTrue(resultProduct.getPrice().compareTo(BigDecimal.valueOf(100)) >= 0);
+            Assertions.assertTrue(resultProduct.getPrice().compareTo(BigDecimal.valueOf(1000)) <= 0);
+            Assertions.assertTrue(resultProduct.getStock() >= 5);
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withNullFilter() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(null);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getContent().size());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_returnsEmptyPage() {
+            Page<Product> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+
+            ProductFilterDto filter = new ProductFilterDto("NonExistent", null, null, null, null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(0, result.getTotalElements());
+            Assertions.assertEquals(0, result.getContent().size());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withPagination_firstPage() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+            ProductFilterDto filter = new ProductFilterDto(null, null, null, null, null, 0, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(0, result.getNumber());
+            Assertions.assertEquals(10, result.getSize());
+            Assertions.assertTrue(result.isFirst());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void searchProduct_withPagination_secondPage() {
+            List<Product> productList = List.of(product);
+            Page<Product> pageOfProducts = new PageImpl<>(productList, PageRequest.of(1, 10), 2);
+
+            ProductFilterDto filter = new ProductFilterDto(null, null, null, null, null, 1, 10, "id", "ASC");
+
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(pageOfProducts);
+
+            Page<ProductDTO> result = productService.search(filter);
+
+            Assertions.assertNotNull(result);
+            Assertions.assertEquals(1, result.getNumber());
+            Assertions.assertEquals(10, result.getSize());
+            Assertions.assertFalse(result.isFirst());
+
+            verify(productRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
 
         @Test
         void getProductById_Ok(){

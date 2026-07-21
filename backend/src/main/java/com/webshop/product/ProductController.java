@@ -3,10 +3,8 @@ package com.webshop.product;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -19,8 +17,8 @@ public class ProductController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter, Pageable pageable) {
-        Page<ProductDTO> page = productService.search(filter, pageable);
+    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter) {
+        Page<ProductDTO> page = productService.search(filter);
         return ResponseEntity.ok(page);
     }
 

@@ -38,4 +38,31 @@ public class ProductSpecification {
             return cb.equal(categoryJoin.get("id"), categoryId);
         };
     }
+
+    public static Specification<Product> buildSpecification(ProductFilterDto filter){
+        Specification<Product> specification = (root, query, cb) -> cb.conjunction();
+
+        if (filter == null) return specification;
+
+        if(filter.getName() != null){
+            specification = specification.and(ProductSpecification.hasName(filter.getName()));
+        }
+
+        if(filter.getCategoryId() != null){
+            specification = specification.and(ProductSpecification.hasCategory(filter.getCategoryId()));
+        }
+
+        if(filter.getMaxPrice() != null){
+            specification = specification.and(ProductSpecification.maxPrice(filter.getMaxPrice()));
+        }
+
+        if(filter.getMinPrice() != null){
+            specification = specification.and(ProductSpecification.minPrice(filter.getMinPrice()));
+        }
+
+        if(filter.getStock() != null){
+            specification = specification.and(ProductSpecification.minStock(filter.getStock()));
+        }
+        return specification;
+    }
 }

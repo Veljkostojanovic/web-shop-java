@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface ProductService {
-    Page<ProductDTO> search(ProductFilterDto filter, Pageable pageable);
+    Page<ProductDTO> search(ProductFilterDto filter);
     ProductDTO addProduct(ProductDTO product);
     ProductDTO updateProduct(Long productId, ProductDTO productDTO);
     ProductDTO getProductById(Long productId);
