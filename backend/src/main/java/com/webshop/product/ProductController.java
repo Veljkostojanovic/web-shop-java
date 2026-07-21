@@ -15,7 +15,7 @@ public class ProductController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter, Pageable pageable) {
+    public ResponseEntity<Page<ProductDTO>> search(@Valid ProductFilterDto filter, Pageable pageable) {
         Page<ProductDTO> page = productService.search(filter, pageable);
         return ResponseEntity.ok(page);
     }

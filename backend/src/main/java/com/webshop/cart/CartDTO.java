@@ -1,6 +1,7 @@
 package com.webshop.cart;
 
 import com.webshop.cartItem.CartItemDTO;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
