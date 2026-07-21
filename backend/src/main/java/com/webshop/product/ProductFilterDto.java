@@ -17,8 +17,4 @@ public class ProductFilterDto {
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
     private Integer stock;
-    private Integer page = 0;
-    private Integer size = 10;
-    private String sortBy = "id";
-    private String sortDirection = "ASC";
 }

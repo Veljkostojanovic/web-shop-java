@@ -2,20 +2,17 @@ package com.webshop.product;
 
 import com.webshop.category.Category;
 import com.webshop.category.CategoryRepository;
+import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,23 +24,10 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDTO> search(ProductFilterDto filter) {
-        if(filter == null){
-            filter = new ProductFilterDto();
-        }
-        String sortBy = filter.getSortBy();
-
-        if (sortBy == null || !ALLOWED_SORT_FIELDS.contains(sortBy)) {
-            sortBy = "id";
-        }
-
-        Sort.Direction direction =
-                "DESC".equalsIgnoreCase(filter.getSortDirection()) ?
-                        Sort.Direction.DESC : Sort.Direction.ASC;
-
-        Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), Sort.by(direction, sortBy));
-        return productRepository.findAll(ProductSpecification.buildSpecification(filter), pageable)
-                .map(ProductMapper::toDTO);
+    public Page<ProductDTO> search(ProductFilterDto filter, Pageable pageable) {
+        validateSort(pageable);
+        Specification<Product> spec = ProductSpecification.buildSpecification(filter);
+        return productRepository.findAll(spec, pageable).map(ProductMapper::toDTO);
     }
 
     @Override
@@ -111,44 +95,6 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll()
-                .stream()
-                .map(ProductMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ProductDTO> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(ProductMapper::toDTO);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductDTO> findByCategoryId(Long categoryId) {
-        if(categoryId == null){
-            throw new  IllegalArgumentException("Category id cannot be null");
-        }
-
-        return productRepository.findByCategoryId(categoryId)
-                .stream()
-                .map(ProductMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductDTO> findByNameContainingIgnoreCase(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(ProductMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
     public boolean deleteProduct(Long productId) {
         if(productId == null){
@@ -170,5 +116,14 @@ public class ProductServiceImpl implements ProductService{
         }
 
         return productRepository.existsByNameIgnoreCase(name);
+    }
+
+    private Pageable validateSort(Pageable pageable){
+        for(Sort.Order order : pageable.getSort()){
+            if(!ALLOWED_SORT_FIELDS.contains(order.getProperty())){
+                throw new BadRequestException("Invalid sort field: " + order.getProperty());
+            }
+        }
+        return pageable;
     }
 }

@@ -3,12 +3,10 @@ package com.webshop.product;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-// http://localhost:8080/api/products
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/products")
@@ -17,8 +15,8 @@ public class ProductController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter) {
-        Page<ProductDTO> page = productService.search(filter);
+    public ResponseEntity<Page<ProductDTO>> search(ProductFilterDto filter, Pageable pageable) {
+        Page<ProductDTO> page = productService.search(filter, pageable);
         return ResponseEntity.ok(page);
     }
 
@@ -27,14 +25,6 @@ public class ProductController {
         ProductDTO newProductDTO = productService.addProduct(productDTO);
         return ResponseEntity.ok(newProductDTO);
     }
-
-    /*@GetMapping
-    public ResponseEntity<Page<ProductDTO>> getAllProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(productService.getAllProducts(pageable));
-    }*/
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getById(@PathVariable Long id){
@@ -54,17 +44,6 @@ public class ProductController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/by-category/{categoryId}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategoryId(@PathVariable Long categoryId){
-        List<ProductDTO> productsByCategoryId = productService.findByCategoryId(categoryId);
-        return ResponseEntity.ok().body(productsByCategoryId);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam("name") String name){
-        return ResponseEntity.ok().body(productService.findByNameContainingIgnoreCase(name));
     }
 
     @PutMapping("/{id}")

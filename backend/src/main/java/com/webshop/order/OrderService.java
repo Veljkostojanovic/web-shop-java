@@ -1,9 +1,10 @@
 package com.webshop.order;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
     OrderDTO createOrder(Long userId);
     OrderDTO getOrderById(Long orderId);
-    List<OrderDTO> getOrdersByUserId(Long userId);
+    Page<OrderDTO> getOrdersByUserId(OrderFilterDto filter, Pageable pageable);
 }

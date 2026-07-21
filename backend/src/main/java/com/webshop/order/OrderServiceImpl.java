@@ -3,11 +3,16 @@ package com.webshop.order;
 import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
 import com.webshop.cartItem.CartItem;
+import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
 import com.webshop.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -15,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +31,8 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "totalAmount", "orderDate", "status");
 
     @Override
     @Transactional
@@ -77,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
         cart.getItems().clear();
         cartRepository.save(cart);
 
-        return mapToDTO(savedOrder);
+        return OrderMapper.mapToDTO(savedOrder);
     }
 
     @Override
@@ -85,34 +93,23 @@ public class OrderServiceImpl implements OrderService {
     public OrderDTO getOrderById(Long orderId) {
         var order = orderRepository.findById(orderId)
                 .orElseThrow( () -> new ResourceNotFoundException("Order not found with id: " + orderId) );
-        return mapToDTO(order);
+        return OrderMapper.mapToDTO(order);
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public List<OrderDTO> getOrdersByUserId(Long userId) {
-        return orderRepository.findByUserId(userId)
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+    public Page<OrderDTO> getOrdersByUserId(OrderFilterDto filter, Pageable pageable){
+        validateSort(pageable);
+        Specification<OrderEntity> spec = OrderSpecification.buildSpecification(filter);
+        return orderRepository.findAll(spec, pageable)
+                .map(OrderMapper::mapToDTO);
     }
 
-    private OrderDTO mapToDTO(OrderEntity order){
-        var itemsDTO = order.getOrderItems().stream()
-                .map(this::mapItemToDTO)
-                .toList();
-        return new OrderDTO(order.getId(), order.getOrderDate(), order.getTotalAmount(), itemsDTO);
-    }
-
-    private OrderItemDTO mapItemToDTO(OrderItem item) {
-        var itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
-
-        return new OrderItemDTO(
-                item.getProduct().getId(),
-                item.getProduct().getName(),
-                item.getPrice(),
-                item.getQuantity(),
-                itemTotal
-        );
+    private Pageable validateSort(Pageable pageable) {
+        for(Sort.Order order : pageable.getSort()){
+            if(!ALLOWED_SORT_FIELDS.contains(order.getProperty())){
+                throw new BadRequestException("Invalid sort field: " + order.getProperty());
+            }
+        }
+        return pageable;
     }
 }
