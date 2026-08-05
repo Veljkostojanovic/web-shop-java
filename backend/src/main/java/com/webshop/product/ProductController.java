@@ -2,6 +2,7 @@ package com.webshop.product;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,8 @@ public class ProductController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> search(@Valid ProductFilterDto filter, Pageable pageable) {
+    public ResponseEntity<Page<ProductDTO>> search(@ParameterObject @Valid ProductFilterDto filter,
+                                                   @ParameterObject Pageable pageable) {
         Page<ProductDTO> page = productService.search(filter, pageable);
         return ResponseEntity.ok(page);
     }

@@ -4,6 +4,7 @@ import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
 import com.webshop.cartItem.CartItem;
 import com.webshop.common.exceptions.BadRequestException;
+import com.webshop.common.exceptions.InsufficientResourcesException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
@@ -38,14 +39,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDTO createOrder(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("No cart found for user: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("No cart found for user: " + userId));
 
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Cannot checkout with an empty cart!");
         }
 
         var user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<Long> productIds = cart.getItems().stream().map(CartItem::getProductId).toList();
 
@@ -63,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
             var product = productMap.get(cartItem.getProductId());
 
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new RuntimeException("Not enough stock for: " + product.getName());
+                throw new InsufficientResourcesException("Not enough stock for: " + product.getName());
             }
             product.setStock(product.getStock() - cartItem.getQuantity());
 

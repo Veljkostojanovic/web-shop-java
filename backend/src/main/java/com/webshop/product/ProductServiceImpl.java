@@ -33,24 +33,20 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public ProductDTO addProduct(ProductDTO productDTO) {
-        if (productDTO == null) {
-            throw new IllegalArgumentException("Product cannot be null");
-        }
-
         if (productRepository.existsByNameIgnoreCase(productDTO.getName())) {
             throw new ResourceConflictException("Product name already exists");
         }
 
-        Product product = ProductMapper.toEntity(productDTO);
-
-        if (productDTO.getCategory() != null && productDTO.getCategory().getId() != null) {
-            Long catId = productDTO.getCategory().getId();
-            Category category = categoryRepository.findById(catId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + catId));
-            product.setCategory(category);
-        } else {
-            product.setCategory(null);
+        if(productDTO.getCategory() == null || productDTO.getCategory().getId() == null){
+            throw new BadRequestException("Product must have category");
         }
+
+        Long categoryId = productDTO.getCategory().getId();
+        Category category = categoryRepository.findById(categoryId).
+                orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+
+        Product product = ProductMapper.toEntity(productDTO);
+        product.setCategory(category);
 
         Product saved = productRepository.save(product);
         return ProductMapper.toDTO(saved);
@@ -59,10 +55,6 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
-        if(productDTO == null)throw new IllegalArgumentException("Product cannot be null");
-        if(productId == null)throw new IllegalArgumentException("Product id cannot be null");
-
-
         Product existing = productRepository.findById(productId)
                 .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
 
@@ -84,10 +76,6 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long productId) {
-        if(productId == null){
-            throw new  IllegalArgumentException("Product id cannot be null");
-        }
-
         Product product = productRepository.findById(productId)
                             .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
 
@@ -97,10 +85,6 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional
     public boolean deleteProduct(Long productId) {
-        if(productId == null){
-            throw new IllegalArgumentException("Product id cannot be null");
-        }
-
         if(!productRepository.existsById(productId)){
             throw new ResourceNotFoundException("Product id not found");
         }
@@ -111,10 +95,6 @@ public class ProductServiceImpl implements ProductService{
     @Override
     @Transactional(readOnly = true)
     public boolean existsByNameIgnoreCase(String name) {
-        if(name == null || name.isEmpty()){
-            throw new IllegalArgumentException("Name cannot be null or empty");
-        }
-
         return productRepository.existsByNameIgnoreCase(name);
     }
 

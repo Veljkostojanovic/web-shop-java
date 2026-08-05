@@ -17,7 +17,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDTO addCategory(CategoryDTO categoryDTO) {
-        if(categoryDTO == null)throw new IllegalArgumentException("CategoryDTO cannot be null");
         if(categoryRepository.existsByNameIgnoreCase(categoryDTO.getName()))throw new ResourceConflictException("Category already exists");
 
         Category category = CategoryMapper.toEntity(categoryDTO);
@@ -28,9 +27,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryDTO) {
-        if(categoryId == null)throw  new IllegalArgumentException("CategoryId cannot be null");
-        if(categoryDTO == null)throw new IllegalArgumentException("CategoryDTO cannot be null");
-
         Category existing = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         existing.setName(categoryDTO.getName());
@@ -42,8 +38,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public CategoryDTO getCategoryById(Long categoryId) {
-        if(categoryId == null)throw new IllegalArgumentException("CategoryId cannot be null");
-
         Category category = categoryRepository
                             .findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
@@ -62,8 +56,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long categoryId) {
-        if(categoryId == null)throw new IllegalArgumentException("CategoryId cannot be null");
-
         if(!categoryRepository.existsById(categoryId))throw new ResourceNotFoundException("Category not found");
 
         categoryRepository.deleteById(categoryId);
@@ -72,7 +64,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByNameIgnoreCase(String name) {
-        if (name == null || name.isBlank())throw new  IllegalArgumentException("Name cannot be null or empty");
         return categoryRepository.existsByNameIgnoreCase(name);
     }
 }

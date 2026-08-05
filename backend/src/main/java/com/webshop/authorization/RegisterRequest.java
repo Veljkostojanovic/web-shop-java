@@ -1,5 +1,6 @@
 package com.webshop.authorization;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 
@@ -9,6 +10,7 @@ public class RegisterRequest {
     public String username;
 
     @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Email is invalid")
     public String email;
 
     @NotBlank(message = "Password cannot be empty")
