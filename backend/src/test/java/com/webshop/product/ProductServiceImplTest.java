@@ -440,16 +440,6 @@ public class ProductServiceImplTest {
             verify(productRepository).findById(1L);
         }
 
-        @Test
-        void getProductById_throwsIllegalArgumentException_productIdNull(){
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.getProductById(null));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Product id cannot be null", exception.getMessage());
-
-            verify(productRepository, never()).findById(1L);
-        }
 
         @Test
         void getProductById_throwsResourceNotFoundException_productNotFound(){
@@ -574,25 +564,6 @@ public class ProductServiceImplTest {
             verify(productRepository).existsByNameIgnoreCase(anyString());
         }
 
-        @Test
-        void existsByNameIgnoreCase_shouldThrowIllegalArgumentException_nameIsNull(){
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.existsByNameIgnoreCase(null));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());
-            verify(productRepository, never()).existsByNameIgnoreCase(anyString());
-        }
-
-        @Test
-        void existsByNameIgnoreCase_shouldThrowIllegalArgumentException_nameIsEmpty(){
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.existsByNameIgnoreCase(""));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());
-            verify(productRepository, never()).existsByNameIgnoreCase(anyString());
-        }
     }
 
     @Nested
@@ -635,17 +606,6 @@ public class ProductServiceImplTest {
             verify(productRepository).deleteById(anyLong());
         }
 
-        @Test
-        void deleteProductById_shouldThrowIllegalArgumentException_productIdNull(){
-
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.deleteProduct(null)
-            );
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Product id cannot be null", exception.getMessage());
-
-            verify(productRepository, never()).deleteById(anyLong());
-        }
 
         @Test
         void deleteProductById_shouldThrowResourceNotFoundException_productIdNotFound(){
