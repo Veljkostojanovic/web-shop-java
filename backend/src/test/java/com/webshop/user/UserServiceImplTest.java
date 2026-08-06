@@ -174,11 +174,11 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void login_shouldThrow_ResourceNotFoundException_UserNotFound() throws Exception{
+        void login_shouldThrow_BadCredentialsException_UserNotFound() throws Exception{
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
-            ResourceNotFoundException exception = Assertions.assertThrows(
-                    ResourceNotFoundException.class, () -> userServiceImpl.login(loginRequest)
+            org.springframework.security.authentication.BadCredentialsException exception = Assertions.assertThrows(
+                    org.springframework.security.authentication.BadCredentialsException.class, () -> userServiceImpl.login(loginRequest)
             );
 
             Assertions.assertNotNull(exception);
@@ -188,12 +188,12 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void login_shouldThrow_IllegalArgumentException_PasswordDoesntMatch() throws Exception{
+        void login_shouldThrow_BadCredentialsException_PasswordDoesntMatch() throws Exception{
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
             when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> userServiceImpl.login(loginRequest)
+            org.springframework.security.authentication.BadCredentialsException exception = Assertions.assertThrows(
+                    org.springframework.security.authentication.BadCredentialsException.class, () -> userServiceImpl.login(loginRequest)
             );
 
             Assertions.assertNotNull(exception);
