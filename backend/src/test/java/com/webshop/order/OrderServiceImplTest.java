@@ -3,6 +3,7 @@ package com.webshop.order;
 import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
 import com.webshop.cartItem.CartItem;
+import com.webshop.common.exceptions.InsufficientResourcesException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
@@ -121,7 +122,7 @@ class OrderServiceImplTest {
         void createOrder_CartNotFound_ThrowsException() {
             when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.empty());
 
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                     () -> orderServiceImpl.createOrder(1L));
 
             assertEquals("No cart found for user: 1", exception.getMessage());
@@ -146,7 +147,7 @@ class OrderServiceImplTest {
             when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.of(cart));
             when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                     () -> orderServiceImpl.createOrder(1L));
 
             assertEquals("User not found", exception.getMessage());
@@ -162,7 +163,7 @@ class OrderServiceImplTest {
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(productRepository.findAllByIdInWithLock(anyList())).thenReturn(List.of(product));
 
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            InsufficientResourcesException exception = assertThrows(InsufficientResourcesException.class,
                     () -> orderServiceImpl.createOrder(1L));
 
             assertEquals("Not enough stock for: Test Product", exception.getMessage());
@@ -205,13 +206,12 @@ class OrderServiceImplTest {
         @Test
         void getOrdersByUserId_ExistingOrders_ReturnsDTOList() {
             org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(List.of(order), org.springframework.data.domain.PageRequest.of(0,10), 1);
-            OrderFilterDto filter = new OrderFilterDto();
-            filter.setUserId(1L);
+            OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(filter, org.springframework.data.domain.PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0,10));
 
             assertNotNull(results);
             assertFalse(results.isEmpty());
@@ -224,13 +224,12 @@ class OrderServiceImplTest {
         @Test
         void getOrdersByUserId_NoOrders_ReturnsEmptyList() {
             org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(new ArrayList<>(), org.springframework.data.domain.PageRequest.of(0,10), 0);
-            OrderFilterDto filter = new OrderFilterDto();
-            filter.setUserId(1L);
+            OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(filter, org.springframework.data.domain.PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0,10));
 
             assertNotNull(results);
             assertTrue(results.isEmpty());
@@ -246,13 +245,12 @@ class OrderServiceImplTest {
         @Test
         void getOrdersByUserId_withValidPageable_returnsPage() {
             org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(List.of(order), org.springframework.data.domain.PageRequest.of(0,10), 1);
-            OrderFilterDto filter = new OrderFilterDto();
-            filter.setUserId(1L);
+            OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
                     .thenReturn(page);
 
-            var result = orderServiceImpl.getOrdersByUserId(filter, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "orderDate")));
+            var result = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "orderDate")));
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
@@ -261,11 +259,10 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_withInvalidSort_throwsBadRequest() {
-            OrderFilterDto filter = new OrderFilterDto();
-            filter.setUserId(1L);
+            OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             assertThrows(com.webshop.common.exceptions.BadRequestException.class, () ->
-                    orderServiceImpl.getOrdersByUserId(filter, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "invalidField")))
+                    orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "invalidField")))
             );
         }
     }

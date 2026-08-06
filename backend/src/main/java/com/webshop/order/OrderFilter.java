@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderFilterDto {
+public class OrderFilter {
 
     @NotNull(message = "User ID is required")
     private Long userId;

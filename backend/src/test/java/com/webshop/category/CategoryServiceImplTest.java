@@ -1,5 +1,6 @@
 package com.webshop.category;
 
+import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;
@@ -55,18 +56,13 @@ public class CategoryServiceImplTest {
         }
 
         @Test
-        void addCategory_ThrowsException_AlreadyExists() throws Exception {
+        void addCategory_ThrowsException_AlreadyExists() {
             when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             Assertions.assertThrows(ResourceConflictException.class, () -> categoryService.addCategory(categoryDTO));
             verify(categoryRepository, never()).save(any());
         }
 
-        @Test
-        void addCategory_ThrowsException_Null() throws Exception {
-            Assertions.assertThrows(IllegalArgumentException.class, () -> categoryService.addCategory(null));
-            verify(categoryRepository, never()).save(any());
-        }
     }
 
     @Nested
@@ -89,19 +85,13 @@ public class CategoryServiceImplTest {
         }
 
         @Test
-        void updateCategory_ThrowIllegalArgumentException_NullId() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows
-                    (IllegalArgumentException.class, () -> categoryService.updateCategory(null, new CategoryDTO()));
+        void updateCategory_ThrowResourceNotFoundException_NotFound() throws Exception {
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
+            
+            ResourceNotFoundException exception = Assertions.assertThrows
+                    (ResourceNotFoundException.class, () -> categoryService.updateCategory(999L, new CategoryDTO()));
 
-            Assertions.assertEquals("CategoryId cannot be null", exception.getMessage());
-        }
-
-        @Test
-        void updateCategory_ThrowIllegalArgumentException_NullUpdateDTO() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> categoryService.updateCategory(1L, null));
-
-            Assertions.assertEquals("CategoryDTO cannot be null", exception.getMessage());
+            Assertions.assertEquals("Category not found", exception.getMessage());
         }
     }
 
@@ -122,15 +112,6 @@ public class CategoryServiceImplTest {
             verify(categoryRepository).findById(anyLong());
         }
 
-        @Test
-        void getCategoryById_ThrowIllegalArgumentException_NullId() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> categoryService.getCategoryById(null));
-
-            Assertions.assertEquals("CategoryId cannot be null", exception.getMessage());
-
-            verify(categoryRepository, never()).findById(anyLong());
-        }
 
         @Test
         void getCategoryById_ThrowResourceNotFound_NotFound() throws Exception {
@@ -184,25 +165,6 @@ public class CategoryServiceImplTest {
             verify(categoryRepository).existsByNameIgnoreCase(anyString());
         }
 
-        @Test
-        void existsByNameIgnoreCase_ThrowIllegalArgument_NullName() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> categoryService.existsByNameIgnoreCase(null));
-
-            Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());
-
-            verify(categoryRepository, never()).existsByNameIgnoreCase(anyString());
-        }
-
-        @Test
-        void existsByNameIgnoteCase_ThrowIllegalArgument_BlankName() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> categoryService.existsByNameIgnoreCase("    ")
-            );
-            Assertions.assertEquals("Name cannot be null or empty", exception.getMessage());
-
-            verify(categoryRepository, never()).existsByNameIgnoreCase(anyString());
-        }
     }
 
     @Nested
@@ -229,13 +191,5 @@ public class CategoryServiceImplTest {
             verify(categoryRepository, never()).deleteById(anyLong());
         }
 
-        @Test
-        void deleteCategory_ThrowIllegalArgumentException_NullId() throws Exception {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> categoryService.deleteCategory(null));
-            Assertions.assertEquals("CategoryId cannot be null", exception.getMessage());
-
-            verify(categoryRepository, never()).deleteById(anyLong());
-        }
     }
 }

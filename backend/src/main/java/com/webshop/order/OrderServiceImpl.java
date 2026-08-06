@@ -98,9 +98,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDTO> getOrdersByUserId(OrderFilterDto filter, Pageable pageable){
+    public Page<OrderDTO> getOrdersByUserId(Long userId, OrderFilterRequest filterRequest, Pageable pageable){
+        OrderFilter filter = createOrderFilter(userId, filterRequest);
         validateSort(pageable);
         Specification<OrderEntity> spec = OrderSpecification.buildSpecification(filter);
+        return orderRepository.findAll(spec, pageable)
+                .map(OrderMapper::mapToDTO);
+    }
+
+    @Override
+    public OrderDTO getOrder(Long orderId, Long userId) {
+        OrderEntity order = orderRepository
+                .findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        return OrderMapper.mapToDTO(order);
+    }
+
+    @Override
+    public Page<OrderDTO> getOrders(OrderFilter filter, Pageable pageable) {
+        validateSort(pageable);
+
+        Specification<OrderEntity> spec = OrderSpecification.buildSpecification(filter);
+
         return orderRepository.findAll(spec, pageable)
                 .map(OrderMapper::mapToDTO);
     }
@@ -112,5 +132,16 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return pageable;
+    }
+
+    private OrderFilter createOrderFilter(Long userId, OrderFilterRequest filterRequest){
+        OrderFilter orderFilter = new OrderFilter();
+        orderFilter.setUserId(userId);
+        orderFilter.setStatus(filterRequest.getStatus());
+        orderFilter.setMinPrice(filterRequest.getMinPrice());
+        orderFilter.setMaxPrice(filterRequest.getMaxPrice());
+        orderFilter.setStartDate(filterRequest.getStartDate());
+        orderFilter.setEndDate(filterRequest.getEndDate());
+        return orderFilter;
     }
 }

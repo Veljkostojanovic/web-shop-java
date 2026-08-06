@@ -16,4 +16,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     Optional<OrderEntity> findById(@Param("id") Long id);
 
     Page<OrderEntity> findAll(Specification<OrderEntity> spec, Pageable pageable);
+
+    @Query("    SELECT DISTINCT o\n" +
+            "    FROM OrderEntity o\n" +
+            "    LEFT JOIN FETCH o.orderItems oi\n" +
+            "    LEFT JOIN FETCH oi.product\n" +
+            "    WHERE o.id = :orderId\n" +
+            "      AND o.user.id = :userId")
+    Optional<OrderEntity> findByIdAndUserId(Long orderId, Long userId);
 }

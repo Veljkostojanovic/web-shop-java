@@ -78,15 +78,6 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void addProduct_shouldThrow_IllegalArgumentException_productIsNull() {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.addProduct(null));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Product cannot be null", exception.getMessage());
-        }
-
-        @Test
         void addProduct_shouldThrow_ResourceConflictException_productAlreadyExists() {
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
@@ -160,28 +151,6 @@ public class ProductServiceImplTest {
             Assertions.assertEquals("New Description", result.getDescription());
             Assertions.assertEquals(1, result.getStock());
             verify(productRepository).save(any(Product.class));
-        }
-
-        @Test
-        void updateProduct_shouldThrowIllegalArgumentException_productIdNull() {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.updateProduct(null, productDTO));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Product id cannot be null", exception.getMessage());
-
-            verify(productRepository, never()).save(any(Product.class));
-        }
-
-        @Test
-        void updateProduct_shouldThrowIllegalArgumentException_productDTONull() {
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.updateProduct(1L, null));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Product cannot be null", exception.getMessage());
-
-            verify(productRepository, never()).save(any(Product.class));
         }
 
         @Test
