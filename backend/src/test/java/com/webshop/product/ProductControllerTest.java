@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
 import com.webshop.category.CategoryDTO;
+import com.webshop.common.exceptions.GlobalExceptionHandler;
 import com.webshop.common.exceptions.ResourceNotFoundException;
+import com.webshop.config.SpringDataConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProductController.class)
 @AutoConfigureMockMvc(addFilters = false)
 
-@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class, com.webshop.config.SpringDataConfig.class})
+@Import({ObjectMapper.class, GlobalExceptionHandler.class, SpringDataConfig.class})
 public class ProductControllerTest {
 
     @Autowired
@@ -106,14 +109,14 @@ public class ProductControllerTest {
         @Test
         void search_EmptyList() throws Exception{
             Page<ProductDTO> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0,10), 0);
-            when(productService.search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(0));
 
-            verify(productService).search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test
@@ -121,7 +124,7 @@ public class ProductControllerTest {
             List<ProductDTO> productDTOList = List.of(productDTO);
             Page<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
 
-            when(productService.search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
                     .andExpect(status().isOk())
@@ -132,7 +135,7 @@ public class ProductControllerTest {
                     .andExpect(jsonPath("$.content[0].price").value(productDTOList.get(0).getPrice()))
                     .andExpect(jsonPath("$.content[0].id").value(productDTOList.get(0).getId()));
 
-            verify(productService).search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test
@@ -140,7 +143,7 @@ public class ProductControllerTest {
             java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
             PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
 
-            when(productService.search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
@@ -148,7 +151,7 @@ public class ProductControllerTest {
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].name").value(productDTO.getName()));
 
-            verify(productService).search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test
@@ -156,14 +159,14 @@ public class ProductControllerTest {
             java.util.List<ProductDTO> productDTOList = java.util.List.of();
             PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 0);
 
-            when(productService.search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+            when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(0));
 
-            verify(productService).search(any(ProductFilterDto.class), any(org.springframework.data.domain.Pageable.class));
+            verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test

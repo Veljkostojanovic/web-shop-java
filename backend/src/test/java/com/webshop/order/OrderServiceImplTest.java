@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -205,36 +208,36 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_ExistingOrders_ReturnsDTOList() {
-            org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(List.of(order), org.springframework.data.domain.PageRequest.of(0,10), 1);
+            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0,10), 1);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
-            when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            when(orderRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0,10));
 
             assertNotNull(results);
             assertFalse(results.isEmpty());
             assertEquals(1, results.getTotalElements());
             assertEquals(100L, results.getContent().get(0).getOrderId());
 
-            verify(orderRepository, times(1)).findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class));
+            verify(orderRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
         void getOrdersByUserId_NoOrders_ReturnsEmptyList() {
-            org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(new ArrayList<>(), org.springframework.data.domain.PageRequest.of(0,10), 0);
+            Page<OrderEntity> page = new PageImpl<>(new ArrayList<>(), PageRequest.of(0,10), 0);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
-            when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0,10));
 
             assertNotNull(results);
             assertTrue(results.isEmpty());
 
-            verify(orderRepository, times(1)).findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class));
+            verify(orderRepository, times(1)).findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class));
         }
     }
 
@@ -244,13 +247,13 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_withValidPageable_returnsPage() {
-            org.springframework.data.domain.Page<OrderEntity> page = new org.springframework.data.domain.PageImpl<>(List.of(order), org.springframework.data.domain.PageRequest.of(0,10), 1);
+            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0,10), 1);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
-            when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var result = orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "orderDate")));
+            var result = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "orderDate")));
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
@@ -262,7 +265,7 @@ class OrderServiceImplTest {
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             assertThrows(com.webshop.common.exceptions.BadRequestException.class, () ->
-                    orderServiceImpl.getOrdersByUserId(1L, filterRequest, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "invalidField")))
+                    orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "invalidField")))
             );
         }
     }
