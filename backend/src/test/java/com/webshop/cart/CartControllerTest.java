@@ -14,10 +14,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -59,8 +62,12 @@ class CartControllerTest {
         user.setUsername("testuser");
         user.setPassword("password123");
         user.setRole("USER");
-        
+
         userPrincipal = new UserPrincipal(user);
+
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     @Test
@@ -68,7 +75,6 @@ class CartControllerTest {
         when(cartService.getOrCreateCart(1L)).thenReturn(cart);
 
         mockMvc.perform(get("/api/cart")
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalPrice").value(20.00))
@@ -85,7 +91,6 @@ class CartControllerTest {
         when(cartService.addProductToCart(1L, 1L, 2)).thenReturn(cart);
 
         mockMvc.perform(post("/api/cart/items")
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -103,7 +108,6 @@ class CartControllerTest {
                 .thenThrow(new ResourceNotFoundException("Product not found"));
 
         mockMvc.perform(post("/api/cart/items")
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -115,7 +119,6 @@ class CartControllerTest {
         AddItemRequest request = new AddItemRequest(1L, -1);
 
         mockMvc.perform(post("/api/cart/items")
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -128,7 +131,6 @@ class CartControllerTest {
         when(cartService.updateItemQuantity(1L, 1L, 5)).thenReturn(cart);
 
         mockMvc.perform(put("/api/cart/items/{productId}", 1L)
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -145,7 +147,6 @@ class CartControllerTest {
                 .thenThrow(new ResourceNotFoundException("Product not found"));
 
         mockMvc.perform(put("/api/cart/items/{productId}", 1L)
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -157,7 +158,6 @@ class CartControllerTest {
         when(cartService.removeItemFromCart(1L, 1L)).thenReturn(cart);
 
         mockMvc.perform(delete("/api/cart/items/{productId}", 1L)
-                        .with(user(userPrincipal))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalPrice").value(20.00));
@@ -169,8 +169,7 @@ class CartControllerTest {
     void clearCart_ValidRequest_ReturnsNoContent() throws Exception {
         doNothing().when(cartService).clearCart(1L);
 
-        mockMvc.perform(delete("/api/cart")
-                        .with(user(userPrincipal)))
+        mockMvc.perform(delete("/api/cart"))
                 .andExpect(status().isNoContent());
 
         verify(cartService, times(1)).clearCart(1L);

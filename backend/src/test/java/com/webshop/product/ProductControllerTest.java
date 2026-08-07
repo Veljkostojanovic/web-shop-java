@@ -196,61 +196,6 @@ public class ProductControllerTest {
             verify(productService).getProductById(anyLong());
         }
 
-       /*@Test
-        void findByCategoryId_shouldReturnList() throws Exception{
-            List<ProductDTO> productDTOList = List.of(productDTO);
-
-            when(productService.findByCategoryId(anyLong())).thenReturn(productDTOList);
-
-            mockMvc.perform(get("/api/products//by-category/{categoryId}", 1L))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(productDTOList.size()))
-                    .andExpect(jsonPath("$[0].name").value(productDTOList.getFirst().getName()));
-
-            verify(productService).findByCategoryId(anyLong());
-        }
-
-        @Test
-        void findByCategoryId_shouldReturnEmptyList() throws Exception{
-            when(productService.findByCategoryId(anyLong())).thenReturn(Collections.emptyList());
-
-            mockMvc.perform(get("/api/products//by-category/{categoryId}", 1L))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(0));
-            verify(productService).findByCategoryId(anyLong());
-        }
-
-        @Test
-        void searchProductByName_shouldReturnList() throws Exception{
-            List<ProductDTO> productDTOList = List.of(productDTO);
-
-            when(productService.findByNameContainingIgnoreCase(anyString())).thenReturn(productDTOList);
-
-            mockMvc.perform(get("/api/products/search")
-                    .param("name", "Product"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(productDTOList.size()))
-                    .andExpect(jsonPath("$[0].name").value(productDTOList.get(0).getName()));
-
-            verify(productService).findByNameContainingIgnoreCase(anyString());
-        }
-
-        @Test
-        void searchProductByName_shouldReturnEmptyList() throws Exception{
-            when(productService.findByNameContainingIgnoreCase(anyString())).thenReturn(Collections.emptyList());
-
-            mockMvc.perform(get("/api/products/search")
-                            .param("name", "Product"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(0));
-
-            verify(productService).findByNameContainingIgnoreCase(anyString());
-        }*/
-
         @Test
         void productExistsByNameIgnoreCase_Ok() throws Exception{
             when(productService.existsByNameIgnoreCase(anyString())).thenReturn(true);

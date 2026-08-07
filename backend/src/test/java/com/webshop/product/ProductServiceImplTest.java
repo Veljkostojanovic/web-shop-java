@@ -3,6 +3,7 @@ package com.webshop.product;
 import com.webshop.category.Category;
 import com.webshop.category.CategoryDTO;
 import com.webshop.category.CategoryRepository;
+import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;
@@ -104,29 +105,30 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void addProduct_NoCategoryId_SavesProductWithoutCategory() {
+        void addProduct_NoCategoryId_ThrowsBadRequestException() {
             productDTO.getCategory().setId(null);
 
             when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
-            when(productRepository.save(any(Product.class))).thenReturn(new Product());
 
-            productService.addProduct(productDTO);
+            BadRequestException exception = Assertions
+                    .assertThrows(BadRequestException.class,  () -> productService.addProduct(productDTO));
 
+            Assertions.assertEquals("Product must have category", exception.getMessage());
             verify(categoryRepository, never()).findById(anyLong());
-            verify(productRepository, times(1)).save(any(Product.class));
+            verify(productRepository, never()).save(any());
         }
 
         @Test
-        void addProduct_CategoryObjectIsNull_SavesProductWithNullCategory() {
+        void addProduct_CategoryObjectIsNull_ThrowsBadRequestException() {
             productDTO.setCategory(null);
 
             when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
-            when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArguments()[0]);
 
-            productService.addProduct(productDTO);
-
+            BadRequestException exception = Assertions
+                    .assertThrows(BadRequestException.class, () -> productService.addProduct(productDTO));
+            Assertions.assertEquals("Product must have category", exception.getMessage());
             verify(categoryRepository, never()).findById(anyLong());
-            verify(productRepository).save(argThat(product -> product.getCategory() == null));
+            verify(productRepository, never()).save(any());
         }
     }
 

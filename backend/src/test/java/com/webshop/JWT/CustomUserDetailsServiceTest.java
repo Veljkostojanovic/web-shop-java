@@ -28,6 +28,7 @@ class CustomUserDetailsServiceTest {
     @BeforeEach
     void setUp() {
         userEntity = new User();
+        userEntity.setId(1L);
         userEntity.setUsername("user");
         userEntity.setPassword("encoded_password");
         userEntity.setRole("USER");
