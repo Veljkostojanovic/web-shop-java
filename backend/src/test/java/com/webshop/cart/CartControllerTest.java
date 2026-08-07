@@ -5,6 +5,7 @@ import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
 import com.webshop.JWT.UserPrincipal;
 import com.webshop.cartItem.CartItemDTO;
+import com.webshop.common.exceptions.GlobalExceptionHandler;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,17 +21,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CartController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class})
+@Import({ObjectMapper.class, GlobalExceptionHandler.class})
 class CartControllerTest {
 
     @Autowired

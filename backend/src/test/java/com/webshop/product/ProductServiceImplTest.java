@@ -456,106 +456,6 @@ public class ProductServiceImplTest {
             verify(productRepository, times(1)).findById(1L);
         }
 
-        /*@Test
-        void getAllProducts_returnListOfProducts(){
-            when(productRepository.findAll()).thenReturn(List.of(product));
-
-            List<ProductDTO> result = productService.getAllProducts();
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(1, result.size());
-            Assertions.assertEquals(1L, result.getFirst().getId());
-            Assertions.assertEquals(10, result.getFirst().getStock());
-            Assertions.assertEquals("Product", result.getFirst().getName());
-            Assertions.assertEquals("Description", result.getFirst().getDescription());
-            Assertions.assertEquals(BigDecimal.valueOf(500), result.getFirst().getPrice());
-
-            verify(productRepository).findAll();
-        }
-
-        @Test
-        void getAllProducts_returnsEmptyList(){
-            when(productRepository.findAll()).thenReturn(List.of());
-
-            List<ProductDTO> result = productService.getAllProducts();
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(0, result.size());
-            verify(productRepository).findAll();
-        }
-
-        @Test
-        void getAllProducts_pageable_returnPage(){
-            org.springframework.data.domain.PageImpl<Product> page = new org.springframework.data.domain.PageImpl<>(List.of(product), org.springframework.data.domain.PageRequest.of(0,10), 1);
-            when(productRepository.findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
-
-            org.springframework.data.domain.Page<ProductDTO> result = productService.getAllProducts(org.springframework.data.domain.PageRequest.of(0,10));
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(1, result.getTotalElements());
-            Assertions.assertEquals(1, result.getContent().size());
-            Assertions.assertEquals(1L, result.getContent().get(0).getId());
-            Assertions.assertEquals("Product", result.getContent().get(0).getName());
-            verify(productRepository).findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
-        }
-
-        @Test
-        void getAllProducts_pageable_returnsEmptyPage(){
-            org.springframework.data.domain.PageImpl<Product> page = new org.springframework.data.domain.PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(0,10), 0);
-            when(productRepository.findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
-
-            org.springframework.data.domain.Page<ProductDTO> result = productService.getAllProducts(org.springframework.data.domain.PageRequest.of(0,10));
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(0, result.getTotalElements());
-            Assertions.assertEquals(0, result.getContent().size());
-            verify(productRepository).findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class));
-        }
-
-        @Test
-        void findByCategoryId_returnsListOfProducts(){
-            when(productRepository.findByCategoryId(anyLong())).thenReturn(List.of(product));
-
-            List<ProductDTO> result = productService.findByCategoryId(1L);
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(1, result.size());
-            Assertions.assertEquals(1L, result.getFirst().getId());
-            Assertions.assertEquals(10, result.getFirst().getStock());
-            Assertions.assertEquals("Product", result.getFirst().getName());
-            Assertions.assertEquals("Description", result.getFirst().getDescription());
-            Assertions.assertEquals(BigDecimal.valueOf(500), result.getFirst().getPrice());
-
-            verify(productRepository).findByCategoryId(1L);
-        }
-
-        @Test
-        void findByCategoryId_throwsIllegalArgumentException_categoryIdNull(){
-            IllegalArgumentException exception = Assertions.assertThrows(
-                    IllegalArgumentException.class, () -> productService.findByCategoryId(null));
-
-            Assertions.assertNotNull(exception);
-            Assertions.assertEquals("Category id cannot be null", exception.getMessage());
-            verify(productRepository, never()).findByCategoryId(anyLong());
-        }
-
-        @Test
-        void findByNameContainingIgnoreCase_returnsListOfProducts(){
-            when(productRepository.findByNameContainingIgnoreCase(anyString())).thenReturn(List.of(product));
-
-            List<ProductDTO> result = productService.findByNameContainingIgnoreCase("Product");
-
-            Assertions.assertNotNull(result);
-            Assertions.assertEquals(1, result.size());
-            Assertions.assertEquals(1L, result.getFirst().getId());
-            Assertions.assertEquals(10, result.getFirst().getStock());
-            Assertions.assertEquals("Product", result.getFirst().getName());
-            Assertions.assertEquals("Description", result.getFirst().getDescription());
-            Assertions.assertEquals(BigDecimal.valueOf(500), result.getFirst().getPrice());
-
-            verify(productRepository).findByNameContainingIgnoreCase(anyString());
-        }*/
-
         @Test
         void existsByNameIgnoreCase_Ok(){
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
@@ -574,13 +474,13 @@ public class ProductServiceImplTest {
 
         @Test
         void search_withValidPageable_returnsPage() {
-            org.springframework.data.domain.Page<Product> page = new org.springframework.data.domain.PageImpl<>(java.util.List.of(product), org.springframework.data.domain.PageRequest.of(0, 10), 1);
+            Page<Product> page = new PageImpl<>(java.util.List.of(product), PageRequest.of(0, 10), 1);
             ProductFilterDto filter = new ProductFilterDto();
 
-            when(productRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            org.springframework.data.domain.Page<ProductDTO> result = productService.search(filter, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "id")));
+           Page<ProductDTO> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getTotalElements());
@@ -591,8 +491,8 @@ public class ProductServiceImplTest {
         void search_withInvalidSort_throwsBadRequest() {
             ProductFilterDto filter = new ProductFilterDto();
 
-            Assertions.assertThrows(com.webshop.common.exceptions.BadRequestException.class, () ->
-                    productService.search(filter, org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "invalidField")))
+            Assertions.assertThrows(BadRequestException.class, () ->
+                    productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "invalidField")))
             );
         }
     }

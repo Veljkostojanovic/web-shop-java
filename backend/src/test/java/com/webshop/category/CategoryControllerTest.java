@@ -3,6 +3,7 @@ package com.webshop.category;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
+import com.webshop.common.exceptions.GlobalExceptionHandler;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,7 +25,7 @@ import org.springframework.http.MediaType;
 
 @WebMvcTest(CategoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class})
+@Import({ObjectMapper.class, GlobalExceptionHandler.class})
 class CategoryControllerTest {
 
     @Autowired
