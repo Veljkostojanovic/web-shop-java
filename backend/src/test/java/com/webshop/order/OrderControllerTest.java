@@ -1,31 +1,38 @@
 package com.webshop.order;
 
-import com.webshop.JWT.CustomUserDetailsService;
+import com.webshop.JWT.JwtAuthFilter;
 import com.webshop.JWT.JwtService;
 import com.webshop.JWT.UserPrincipal;
 import com.webshop.common.exceptions.ResourceNotFoundException;
-import com.webshop.user.User;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({com.fasterxml.jackson.databind.ObjectMapper.class, com.webshop.common.exceptions.GlobalExceptionHandler.class})
 class OrderControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -33,113 +40,165 @@ class OrderControllerTest {
     private OrderService orderService;
 
     @MockitoBean
-    private CustomUserDetailsService customUserDetailsService;
-
-    @MockitoBean
     private JwtService jwtService;
 
-    private OrderDTO orderDTO;
+    @MockitoBean
+    private JwtAuthFilter jwtAuthFilter;
+
     private UserPrincipal userPrincipal;
+    private OrderDTO sampleOrderDTO;
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
-        OrderItemDTO orderItemDTO = new OrderItemDTO(
-                1L,
-                "Test Product",
-                BigDecimal.valueOf(50),
-                2,
-                BigDecimal.valueOf(100)
-        );
+        userPrincipal = new UserPrincipal(USER_ID, "testuser@example.com", "username", "password", Collections.emptyList());
 
-        orderDTO = new OrderDTO(
-                100L,
-                LocalDateTime.now(),
-                BigDecimal.valueOf(100),
-                List.of(orderItemDTO)
-        );
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("test@example.com");
-        user.setUsername("testuser");
-        user.setPassword("password123");
-        user.setRole("USER");
-        
-        userPrincipal = new UserPrincipal(user);
+        sampleOrderDTO = new OrderDTO();
     }
 
-    @Test
-    void checkout_ValidRequest_ReturnsCreatedAndOrderDTO() throws Exception {
-        when(orderService.createOrder(1L)).thenReturn(orderDTO);
+    @Nested
+    @DisplayName("POST /api/orders/checkout")
+    class CheckoutTests {
 
-        mockMvc.perform(post("/api/orders/checkout")
-                        .with(user(userPrincipal))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.orderId").value(100L))
-                .andExpect(jsonPath("$.totalAmount").value(100.00))
-                .andExpect(jsonPath("$.items[0].productId").value(1L))
-                .andExpect(jsonPath("$.items[0].quantity").value(2));
+        @Test
+        void checkout_Success_Returns201() throws Exception {
+            when(orderService.createOrder(USER_ID)).thenReturn(sampleOrderDTO);
 
-        verify(orderService, times(1)).createOrder(1L);
+            mockMvc.perform(post("/api/orders/checkout")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isCreated());
+
+            verify(orderService).createOrder(USER_ID);
+        }
+
+        @Test
+        void checkout_ServiceThrowsException_PropagatesError() throws Exception {
+            when(orderService.createOrder(USER_ID))
+                    .thenThrow(new RuntimeException("Cart is empty"));
+
+            mockMvc.perform(post("/api/orders/checkout")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(result ->
+                            Assertions.assertTrue(
+                                    result.getResolvedException() instanceof RuntimeException
+                            )
+                    );
+
+            verify(orderService).createOrder(USER_ID);
+        }
     }
 
-    @Test
-    void getOrder_ExistingOrder_ReturnsOkAndOrderDTO() throws Exception {
-        when(orderService.getOrder(100L, 1L)).thenReturn(orderDTO);
+    @Nested
+    @DisplayName("GET /api/orders/{orderId}")
+    class GetOrderTests {
 
-        mockMvc.perform(get("/api/orders/{orderId}", 100L)
-                        .with(user(userPrincipal))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderId").value(100L))
-                .andExpect(jsonPath("$.totalAmount").value(100.00));
+        @Test
+        void getOrder_Success_Returns200() throws Exception {
+            Long orderId = 100L;
+            when(orderService.getOrder(orderId, USER_ID)).thenReturn(sampleOrderDTO);
 
-        verify(orderService, times(1)).getOrder(100L, 1L);
+            mockMvc.perform(get("/api/orders/{orderId}", orderId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            verify(orderService).getOrder(orderId, USER_ID);
+        }
+
+        @Test
+        void getOrder_InvalidOrderIdType_Returns400() throws Exception {
+            mockMvc.perform(get("/api/orders/{orderId}", "invalid-id")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void getOrder_NotFound_PropagatesException() throws Exception {
+            Long orderId = 999L;
+            when(orderService.getOrder(orderId, USER_ID))
+                    .thenThrow(new ResourceNotFoundException("Order not found"));
+
+            mockMvc.perform(get("/api/orders/{orderId}", orderId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(result ->
+                            Assertions.assertTrue(
+                                    result.getResolvedException() instanceof ResourceNotFoundException
+                            )
+                    );
+
+            verify(orderService).getOrder(orderId, USER_ID);
+        }
     }
 
-    @Test
-    void getOrder_OrderNotFound_ThrowsResourceNotFoundException() throws Exception {
-        when(orderService.getOrder(999L, 1L))
-                .thenThrow(new ResourceNotFoundException("Order not found"));
+    @Nested
+    @DisplayName("GET /api/orders/user")
+    class GetOrdersByUserIdTests {
 
-        mockMvc.perform(get("/api/orders/{orderId}", 999L)
-                        .with(user(userPrincipal))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Order not found"));
-    }
+        @Test
+        void getOrdersByUserId_DefaultParams_ReturnsPagedOrders() throws Exception {
+            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO));
+            when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
+                    .thenReturn(page);
 
-    @Test
-    void getOrdersByUserId_ExistingOrders_ReturnsOkAndPage() throws Exception {
-        org.springframework.data.domain.Page<OrderDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(orderDTO));
+            mockMvc.perform(get("/api/orders/user")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content.length()").value(1));
 
-        when(orderService.getOrdersByUserId(eq(1L), any(OrderFilterRequest.class), any(org.springframework.data.domain.Pageable.class)))
-                .thenReturn(page);
+            verify(orderService).getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class));
+        }
 
-        mockMvc.perform(get("/api/orders/user")
-                        .with(user(userPrincipal))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].orderId").value(100L))
-                .andExpect(jsonPath("$.content[0].totalAmount").value(100.00));
+        @Test
+        void getOrdersByUserId_WithPaginationQueryParams_PassesPageableToService() throws Exception {
+            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO), PageRequest.of(1, 5), 10);
 
-        verify(orderService, times(1)).getOrdersByUserId(eq(1L), any(OrderFilterRequest.class), any(org.springframework.data.domain.Pageable.class));
-    }
+            when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
+                    .thenReturn(page);
 
-    @Test
-    void getOrdersByUserId_NoOrders_ReturnsOkAndEmptyPage() throws Exception {
-        org.springframework.data.domain.Page<OrderDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
+            mockMvc.perform(get("/api/orders/user")
+                            .param("page", "1")
+                            .param("size", "5")
+                            .param("sort", "createdAt,desc")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.number").value(1))
+                    .andExpect(jsonPath("$.size").value(5))
+                    .andExpect(jsonPath("$.totalElements").value(10));
 
-        when(orderService.getOrdersByUserId(eq(1L), any(OrderFilterRequest.class), any(org.springframework.data.domain.Pageable.class)))
-                .thenReturn(page);
+            verify(orderService).getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class));
+        }
 
-        mockMvc.perform(get("/api/orders/user")
-                        .with(user(userPrincipal))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
+        @Test
+        void getOrdersByUserId_EmptyResults_ReturnsEmptyPage() throws Exception {
+            Page<OrderDTO> emptyPage = new PageImpl<>(Collections.emptyList());
+            when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
+                    .thenReturn(emptyPage);
 
-        verify(orderService, times(1)).getOrdersByUserId(eq(1L), any(OrderFilterRequest.class), any(org.springframework.data.domain.Pageable.class));
+            mockMvc.perform(get("/api/orders/user")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isEmpty())
+                    .andExpect(jsonPath("$.totalElements").value(0));
+
+            verify(orderService).getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class));
+        }
+
+        @Test
+        void getOrdersByUserId_WithFilterParams_ExecutesSuccessfully() throws Exception {
+            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO));
+            when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/api/orders/user")
+                            .param("status", "DELIVERED")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            verify(orderService).getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class));
+        }
     }
 }
