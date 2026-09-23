@@ -1,7 +1,7 @@
 package com.webshop.user;
 
-import com.webshop.authorization.LoginRequest;
-import com.webshop.authorization.RegisterRequest;
+import com.webshop.authentification.LoginRequest;
+import com.webshop.authentification.RegisterRequest;
 import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
@@ -21,15 +21,15 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDTO findUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return UserMapper.toDTO(user);
+    public UserResponse findUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User with email = " + email + " not found"));
+        return UserMapper.toResponse(user);
     }
 
     @Override
-    public UserDTO findUserByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return UserMapper.toDTO(user);
+    public UserResponse findUserByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User with username = " + username + " not found"));
+        return UserMapper.toResponse(user);
     }
 
     @Override
@@ -45,9 +45,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User login(LoginRequest loginRequest) {
 
-        User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        User user = userRepository.findByUsername(loginRequest.username()).orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        if(!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
         }
         return user;
@@ -56,12 +56,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(RegisterRequest registerRequest) {
 
-        validateRegistration(registerRequest.email, registerRequest.username);
+        validateRegistration(registerRequest.email(), registerRequest.username());
 
         User user = new User();
-        user.setUsername(registerRequest.username);
-        user.setEmail(registerRequest.email);
-        user.setPassword(passwordEncoder.encode(registerRequest.password));
+        user.setUsername(registerRequest.username());
+        user.setEmail(registerRequest.email());
+        user.setPassword(passwordEncoder.encode(registerRequest.password()));
         user.setRole("USER");
 
         Cart cart = new Cart();
@@ -71,8 +71,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream().map(UserMapper::toDTO).toList();
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream().map(UserMapper::toResponse).toList();
     }
 
     @Override

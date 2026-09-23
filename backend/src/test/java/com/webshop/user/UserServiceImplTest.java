@@ -1,7 +1,7 @@
 package com.webshop.user;
 
-import com.webshop.authorization.LoginRequest;
-import com.webshop.authorization.RegisterRequest;
+import com.webshop.authentification.LoginRequest;
+import com.webshop.authentification.RegisterRequest;
 import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.*;

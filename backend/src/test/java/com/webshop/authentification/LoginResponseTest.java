@@ -1,4 +1,4 @@
-package com.webshop.authorization;
+package com.webshop.authentification;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

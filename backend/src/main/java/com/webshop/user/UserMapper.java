@@ -1,14 +1,12 @@
 package com.webshop.user;
 
 public class UserMapper {
-
-    public static UserDTO toDTO(User user){
-        if(user == null) return null;
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setRole(user.getRole());
-        return userDTO;
+    public static UserResponse toResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.id = user.getId();
+        response.username = user.getUsername();
+        response.email = user.getEmail();
+        response.role = user.getRole();
+        return response;
     }
 }

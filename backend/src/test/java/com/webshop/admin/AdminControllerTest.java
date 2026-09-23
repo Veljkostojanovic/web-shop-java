@@ -3,7 +3,6 @@ package com.webshop.admin;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
 import com.webshop.order.OrderService;
-import com.webshop.user.UserDTO;
 import com.webshop.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,6 @@
 package com.webshop.user;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,9 +13,8 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
-        String userName = authentication.getName();
-        UserDTO user = userService.findUserByUsername(userName);
-        return ResponseEntity.ok(user);
+    public UserResponse getCurrentUser(Authentication authentication) {
+        String username = authentication.getName();
+        return userService.findUserByUsername(username);
     }
 }

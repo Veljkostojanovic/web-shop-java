@@ -1,22 +1,17 @@
-package com.webshop.user;
+package com.webshop.authentification;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserDTO {
-    private Long id;
-
+public record RegisterRequest(
     @NotBlank(message = "Username cannot be empty")
-    private String username;
+    String username,
 
     @NotBlank(message = "Email cannot be empty")
     @Email(message = "Email is invalid")
-    private String email;
+    String email,
 
-    private String role;
-}
+    @NotBlank(message = "Password cannot be empty")
+    String password
+){}
+

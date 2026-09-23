@@ -1,10 +1,9 @@
 package com.webshop.admin;
 
-
 import com.webshop.order.OrderDTO;
 import com.webshop.order.OrderFilter;
 import com.webshop.order.OrderService;
-import com.webshop.user.UserDTO;
+import com.webshop.user.UserResponse;
 import com.webshop.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ public class AdminController {
     private final OrderService orderService;
 
     @GetMapping("/users")
-    public List<UserDTO> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
 
@@ -37,12 +36,12 @@ public class AdminController {
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<UserDTO> getUserByUsername (@PathVariable String username){
+    public ResponseEntity<UserResponse> getUserByUsername (@PathVariable String username){
         return ResponseEntity.ok(userService.findUserByUsername(username));
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email){
+    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email){
         return ResponseEntity.ok(userService.findUserByEmail(email));
     }
 

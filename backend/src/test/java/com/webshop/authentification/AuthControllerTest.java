@@ -1,4 +1,4 @@
-package com.webshop.authorization;
+package com.webshop.authentification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
