@@ -2,18 +2,26 @@ package com.webshop.category;
 
 public class CategoryMapper {
 
-    public static CategoryDTO toDTO(Category category) {
+    public static CategoryResponse toDTO(Category category) {
         if(category == null) return null;
-        CategoryDTO categoryDTO = new CategoryDTO();
-        categoryDTO.setId(category.getId());
-        categoryDTO.setName(category.getName());
-        return categoryDTO;
+
+        return new CategoryResponse(
+                category.getId(),
+                category.getName()
+        );
     }
 
-    public static Category toEntity(CategoryDTO categoryDTO) {
-        if(categoryDTO == null) return null;
+    public static Category toEntity(CategoryResponse categoryResponse) {
+        if(categoryResponse == null) return null;
         Category category = new Category();
-        category.setName(categoryDTO.getName());
+        category.setName(categoryResponse.name());
+        return category;
+    }
+
+    public static Category toEntity(CategoryCreateRequest categoryCreateRequest) {
+        if(categoryCreateRequest == null) return null;
+        Category category = new Category();
+        category.setName(categoryCreateRequest.name());
         return category;
     }
 }

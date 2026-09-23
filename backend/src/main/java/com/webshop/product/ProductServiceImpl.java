@@ -6,6 +6,7 @@ import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService{
@@ -24,7 +26,8 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDTO> search(ProductFilterDto filter, Pageable pageable) {
+    public Page<ProductResponse> search(ProductFilterDto filter, Pageable pageable) {
+        log.info("Searching for products filter = {}, pageable = {}", filter, pageable);
         validateSort(pageable);
         Specification<Product> spec = ProductSpecification.buildSpecification(filter);
         return productRepository.findAll(spec, pageable).map(ProductMapper::toDTO);
@@ -32,64 +35,68 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     @Transactional
-    public ProductDTO addProduct(ProductDTO productDTO) {
-        if (productRepository.existsByNameIgnoreCase(productDTO.getName())) {
-            throw new ResourceConflictException("Product name already exists");
+    public ProductResponse addProduct(ProductCreateRequest productCreateRequest) {
+        log.info("Adding product productName = {}, categoryId = {}",  productCreateRequest.name(), productCreateRequest.categoryId());
+        if (productRepository.existsByNameIgnoreCase(productCreateRequest.name())) {
+            throw new ResourceConflictException("Product with name = " + productCreateRequest.name() + " already exists");
         }
 
-        if(productDTO.getCategory() == null || productDTO.getCategory().getId() == null){
-            throw new BadRequestException("Product must have category");
-        }
+        Long categoryId =  productCreateRequest.categoryId();
+        Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
 
-        Long categoryId = productDTO.getCategory().getId();
-        Category category = categoryRepository.findById(categoryId).
-                orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-
-        Product product = ProductMapper.toEntity(productDTO);
+        Product product = ProductMapper.toEntity(productCreateRequest);
         product.setCategory(category);
 
         Product saved = productRepository.save(product);
+        log.info("Added product productId = {}, categoryId = {}", product.getId(), product.getCategory().getId());
         return ProductMapper.toDTO(saved);
     }
 
     @Override
     @Transactional
-    public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
+    public ProductResponse updateProduct(Long productId, ProductUpdateRequest productUpdateRequest) {
+        log.info("Updating product productId = {}", productId);
         Product existing = productRepository.findById(productId)
-                .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
-        existing.setName(productDTO.getName());
-        existing.setPrice(productDTO.getPrice());
-        existing.setDescription(productDTO.getDescription());
-        existing.setStock(productDTO.getStock());
-
-        if (productDTO.getCategory() != null && productDTO.getCategory().getId() != null) {
-            existing.setCategory(categoryRepository.findById(productDTO.getCategory().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
+        if(productRepository.existsByNameIgnoreCaseAndIdNot(productUpdateRequest.name(), productId)){
+            throw new ResourceConflictException("Product with name = " + productUpdateRequest.name() + " already exists");
         }
 
-        Product updated = productRepository.save(existing);
+        existing.setName(productUpdateRequest.name());
+        existing.setPrice(productUpdateRequest.price());
+        existing.setDescription(productUpdateRequest.description());
+        existing.setStock(productUpdateRequest.stock());
 
-        return ProductMapper.toDTO(updated);
+        if (productUpdateRequest.categoryId() != null) {
+            existing.setCategory(categoryRepository.findById(productUpdateRequest.categoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productUpdateRequest.categoryId())));
+        }
+
+        log.info("Updated product productId = {}", productId);
+        return ProductMapper.toDTO(existing);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ProductDTO getProductById(Long productId) {
+    public ProductResponse getProductById(Long productId) {
         Product product = productRepository.findById(productId)
-                            .orElseThrow( () -> new ResourceNotFoundException("Product id not found"));
+                            .orElseThrow( () -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
         return ProductMapper.toDTO(product);
     }
 
     @Override
     @Transactional
-    public boolean deleteProduct(Long productId) {
+    public void deleteProduct(Long productId) {
+        log.info("Deleting product productId = {}", productId);
         if(!productRepository.existsById(productId)){
-            throw new ResourceNotFoundException("Product id not found");
+            throw new ResourceNotFoundException("Product not found with ID: " + productId);
         }
         productRepository.deleteById(productId);
-        return true;
+
+        log.info("Deleted Product productId = {}", productId);
     }
 
     @Override
@@ -98,12 +105,11 @@ public class ProductServiceImpl implements ProductService{
         return productRepository.existsByNameIgnoreCase(name);
     }
 
-    private Pageable validateSort(Pageable pageable){
+    private void validateSort(Pageable pageable){
         for(Sort.Order order : pageable.getSort()){
             if(!ALLOWED_SORT_FIELDS.contains(order.getProperty())){
                 throw new BadRequestException("Invalid sort field: " + order.getProperty());
             }
         }
-        return pageable;
     }
 }

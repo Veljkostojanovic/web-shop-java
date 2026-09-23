@@ -24,7 +24,7 @@ public class CategoryServiceImplTest {
     private CategoryServiceImpl categoryService;
 
     private Category category;
-    private CategoryDTO categoryDTO;
+    private CategoryResponse categoryResponse;
 
     @BeforeEach
     public void setup() {
@@ -32,9 +32,9 @@ public class CategoryServiceImplTest {
         category.setId(1L);
         category.setName("Category");
 
-        categoryDTO = new CategoryDTO();
-        categoryDTO.setId(1L);
-        categoryDTO.setName("Category");
+        categoryResponse = new CategoryResponse();
+        categoryResponse.setId(1L);
+        categoryResponse.setName("Category");
     }
 
     @Nested
@@ -47,7 +47,7 @@ public class CategoryServiceImplTest {
             when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
 
-            CategoryDTO savedDTO = categoryService.addCategory(categoryDTO);
+            CategoryResponse savedDTO = categoryService.addCategory(categoryResponse);
 
             Assertions.assertNotNull(savedDTO);
             Assertions.assertEquals("Category", savedDTO.getName());
@@ -58,7 +58,7 @@ public class CategoryServiceImplTest {
         void addCategory_ThrowsException_AlreadyExists() {
             when(categoryRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
-            Assertions.assertThrows(ResourceConflictException.class, () -> categoryService.addCategory(categoryDTO));
+            Assertions.assertThrows(ResourceConflictException.class, () -> categoryService.addCategory(categoryResponse));
             verify(categoryRepository, never()).save(any());
         }
 
@@ -70,13 +70,13 @@ public class CategoryServiceImplTest {
 
         @Test
         void updateCategory_Ok() throws Exception {
-            CategoryDTO updateDto = new CategoryDTO();
+            CategoryResponse updateDto = new CategoryResponse();
             updateDto.setName("New Category");
 
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
             when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            CategoryDTO result = categoryService.updateCategory(1L, updateDto);
+            CategoryResponse result = categoryService.updateCategory(1L, updateDto);
 
             Assertions.assertEquals("New Category", result.getName());
             Assertions.assertEquals(1L, result.getId());
@@ -88,7 +88,7 @@ public class CategoryServiceImplTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
             
             ResourceNotFoundException exception = Assertions.assertThrows
-                    (ResourceNotFoundException.class, () -> categoryService.updateCategory(999L, new CategoryDTO()));
+                    (ResourceNotFoundException.class, () -> categoryService.updateCategory(999L, new CategoryResponse()));
 
             Assertions.assertEquals("Category not found", exception.getMessage());
         }
@@ -102,7 +102,7 @@ public class CategoryServiceImplTest {
         void getCategoryById_Ok() throws Exception {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
 
-            CategoryDTO result = categoryService.getCategoryById(1L);
+            CategoryResponse result = categoryService.getCategoryById(1L);
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals("Category", result.getName());
@@ -125,7 +125,7 @@ public class CategoryServiceImplTest {
         void getAllCategories_EmptyList() throws Exception {
             when(categoryRepository.findAll()).thenReturn(Collections.emptyList());
 
-            List<CategoryDTO> result = categoryService.getAllCategories();
+            List<CategoryResponse> result = categoryService.getAllCategories();
 
             Assertions.assertNotNull(result);
             Assertions.assertTrue(result.isEmpty());
@@ -138,7 +138,7 @@ public class CategoryServiceImplTest {
         void getAllCategories_Ok() throws Exception {
             when(categoryRepository.findAll()).thenReturn(List.of(category));
 
-            List<CategoryDTO> result = categoryService.getAllCategories();
+            List<CategoryResponse> result = categoryService.getAllCategories();
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.size());

@@ -6,12 +6,14 @@ import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class CartServiceImpl implements CartService{
@@ -21,12 +23,14 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public CartDTO getOrCreateCart(Long userId) {
+        log.info("Getting cart for userId = {}", userId);
         Cart cart = getCartEntity(userId);
         return mapToDTO(cart);
     }
 
     @Override
     public CartDTO addProductToCart(Long userId, Long productId, int quantity) {
+        log.info("Adding product = {}, userId = {}, quantity = {}",  productId, userId, quantity);
         Cart cart = getCartEntity(userId);
 
         Product product = productRepository.findById(productId)
@@ -46,37 +50,50 @@ public class CartServiceImpl implements CartService{
                         }
                 );
         Cart savedCart = cartRepository.save(cart);
+
+        log.info("Added product = {}, userId = {}, quantity = {}",  productId, userId, quantity);
         return mapToDTO(savedCart);
     }
 
     @Override
     public CartDTO updateItemQuantity(Long userId, Long productId, int quantity) {
+        log.info("Updating product = {}, userId = {}, quantity = {}", productId, userId, quantity);
         Cart cart = getCartEntity(userId);
 
-        cart.getItems().stream()
-                .filter(item -> item.getProductId().equals(productId))
-                .findFirst()
-                .ifPresent( item-> {
-                    if (quantity <= 0) {
-                        cart.getItems().remove(item);
-                    } else {
-                        item.setQuantity(quantity);
-                    }
-                });
+        CartItem cartItem = cart.getItems().stream()
+                        .filter(item -> item.getProductId().equals(productId))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
+        if(quantity <= 0)
+            cart.getItems().remove(cartItem);
+        else
+            cartItem.setQuantity(quantity);
+
+        log.info("Updated item, productId = {}, userId = {}, quantity = {}", productId, userId, quantity);
         return mapToDTO(cartRepository.save(cart));
     }
 
     @Override
     public CartDTO removeItemFromCart(Long userId, Long productId) {
+        log.info("Removing product = {}, userId = {}", productId, userId);
         Cart cart = getCartEntity(userId);
-        cart.getItems().removeIf(item->item.getProductId().equals(productId));
+
+        CartItem cartItem = cart.getItems()
+                        .stream()
+                        .filter(item -> item.getProductId().equals(productId))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+
+        cart.getItems().remove(cartItem);
         Cart savedCart = cartRepository.save(cart);
+        log.info("Removed product = {}, userId = {}", productId, userId);
         return mapToDTO(savedCart);
     }
 
     @Override
     public void clearCart(Long userId) {
+        log.info("Clearing cart = {}", userId);
         cartRepository.findByUserId(userId)
                 .ifPresent( cart -> {
                     cart.getItems().clear();

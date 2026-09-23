@@ -4,27 +4,39 @@ import com.webshop.category.CategoryMapper;
 
 public class ProductMapper {
 
-    public static ProductDTO  toDTO(Product product) {
-        if(product == null) return null;
-        ProductDTO productDTO = new ProductDTO();
+    public static ProductResponse toDTO(Product product) {
+        if (product == null) {
+            return null;
+        }
 
-        productDTO.setName(product.getName());
-        productDTO.setDescription(product.getDescription());
-        productDTO.setPrice(product.getPrice());
-        productDTO.setStock(product.getStock());
-        productDTO.setId(product.getId());
-        productDTO.setCategory(CategoryMapper.toDTO(product.getCategory()));
-        return productDTO;
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                CategoryMapper.toDTO(product.getCategory())
+        );
     }
 
-    public static Product toEntity(ProductDTO dto) {
+    public static Product toEntity(ProductResponse dto) {
         if (dto == null) return null;
         Product product = new Product();
-        product.setId(dto.getId());
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setStock(dto.getStock());
-        product.setPrice(dto.getPrice());
+        product.setId(dto.id());
+        product.setName(dto.name());
+        product.setDescription(dto.description());
+        product.setStock(dto.stock());
+        product.setPrice(dto.price());
+        return product;
+    }
+
+    public static Product toEntity(ProductCreateRequest request) {
+        if (request == null) return null;
+        Product product = new Product();
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+        product.setStock(request.stock());
         return product;
     }
 }

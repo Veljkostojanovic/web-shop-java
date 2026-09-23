@@ -28,4 +28,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id IN :ids")
     List<Product> findAllByIdInWithLock(@Param("ids") List<Long> ids);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

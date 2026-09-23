@@ -2,7 +2,7 @@ package com.webshop.cart;
 
 import com.webshop.cartItem.CartItem;
 import com.webshop.cartItem.CartItemDTO;
-import com.webshop.product.ProductDTO;
+import com.webshop.product.ProductResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
@@ -45,9 +45,9 @@ public class CartMapperTest {
     void toCartItemDto_Ok() throws Exception {
         CartItem cartItem = new CartItem();
         cartItem.setQuantity(1);
-        ProductDTO productDTO = new ProductDTO(1L, "Product", null, BigDecimal.valueOf(500), 0, null);
+        ProductResponse productResponse = new ProductResponse(1L, "Product", null, BigDecimal.valueOf(500), 0, null);
 
-        CartItemDTO result = CartMapper.toCartItemDTO(cartItem, productDTO);
+        CartItemDTO result = CartMapper.toCartItemDTO(cartItem, productResponse);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getProductId());

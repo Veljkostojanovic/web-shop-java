@@ -44,24 +44,24 @@ public class ProductSpecification {
 
         if (filter == null) return specification;
 
-        if(filter.getName() != null){
-            specification = specification.and(ProductSpecification.hasName(filter.getName()));
+        if(filter.name() != null){
+            specification = specification.and(ProductSpecification.hasName(filter.name()));
         }
 
-        if(filter.getCategoryId() != null){
-            specification = specification.and(ProductSpecification.hasCategory(filter.getCategoryId()));
+        if(filter.categoryId() != null){
+            specification = specification.and(ProductSpecification.hasCategory(filter.categoryId()));
         }
 
-        if(filter.getMaxPrice() != null){
-            specification = specification.and(ProductSpecification.maxPrice(filter.getMaxPrice()));
+        if(filter.maxPrice() != null){
+            specification = specification.and(ProductSpecification.maxPrice(filter.maxPrice()));
         }
 
-        if(filter.getMinPrice() != null){
-            specification = specification.and(ProductSpecification.minPrice(filter.getMinPrice()));
+        if(filter.minPrice() != null){
+            specification = specification.and(ProductSpecification.minPrice(filter.minPrice()));
         }
 
-        if(filter.getStock() != null){
-            specification = specification.and(ProductSpecification.minStock(filter.getStock()));
+        if(filter.stock() != null){
+            specification = specification.and(ProductSpecification.minStock(filter.stock()));
         }
         return specification;
     }

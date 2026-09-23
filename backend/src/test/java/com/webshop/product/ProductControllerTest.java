@@ -3,7 +3,7 @@ package com.webshop.product;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
-import com.webshop.category.CategoryDTO;
+import com.webshop.category.CategoryResponse;
 import com.webshop.common.exceptions.GlobalExceptionHandler;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.config.SpringDataConfig;
@@ -52,14 +52,14 @@ public class ProductControllerTest {
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
 
-    private ProductDTO productDTO;
-    private CategoryDTO categoryDTO;
+    private ProductResponse productResponse;
+    private CategoryResponse categoryResponse;
     private ProductFilterDto filter;
 
     @BeforeEach
     void setUp() {
-        categoryDTO = new CategoryDTO(1L, "Category");
-        productDTO = new ProductDTO(1L, "Product", "Description", BigDecimal.valueOf(500), 10, categoryDTO);
+        categoryResponse = new CategoryResponse(1L, "Category");
+        productResponse = new ProductResponse(1L, "Product", "Description", BigDecimal.valueOf(500), 10, categoryResponse);
         filter = new ProductFilterDto(
                 "Trail",
                 4L,
@@ -75,24 +75,24 @@ public class ProductControllerTest {
 
         @Test
         void addProduct_ShouldReturn201AndProduct() throws Exception{
-            when(productService.addProduct(any(ProductDTO.class))).thenReturn(productDTO);
+            when(productService.addProduct(any(ProductResponse.class))).thenReturn(productResponse);
 
             mockMvc.perform(post("/api/products")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(productDTO)))
+                    .content(objectMapper.writeValueAsString(productResponse)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.name").value(productDTO.getName()))
-                    .andExpect(jsonPath("$.description").value(productDTO.getDescription()))
-                    .andExpect(jsonPath("$.price").value(productDTO.getPrice()))
-                    .andExpect(jsonPath("$.id").value(productDTO.getId()))
-                    .andExpect(jsonPath("$.stock").value(productDTO.getStock()));
+                    .andExpect(jsonPath("$.name").value(productResponse.getName()))
+                    .andExpect(jsonPath("$.description").value(productResponse.getDescription()))
+                    .andExpect(jsonPath("$.price").value(productResponse.getPrice()))
+                    .andExpect(jsonPath("$.id").value(productResponse.getId()))
+                    .andExpect(jsonPath("$.stock").value(productResponse.getStock()));
 
-            verify(productService).addProduct(any(ProductDTO.class));
+            verify(productService).addProduct(any(ProductResponse.class));
         }
 
         @Test
         void addProduct_ShouldReturn400_BadRequest() throws Exception{
-            ProductDTO badDTO = new ProductDTO(1L, "", "", BigDecimal.valueOf(0), 0, null);
+            ProductResponse badDTO = new ProductResponse(1L, "", "", BigDecimal.valueOf(0), 0, null);
 
             mockMvc.perform(post("/api/products")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +108,7 @@ public class ProductControllerTest {
 
         @Test
         void search_EmptyList() throws Exception{
-            Page<ProductDTO> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0,10), 0);
+            Page<ProductResponse> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0,10), 0);
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
@@ -121,8 +121,8 @@ public class ProductControllerTest {
 
         @Test
         void search_shouldReturnsList() throws Exception{
-            List<ProductDTO> productDTOList = List.of(productDTO);
-            Page<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
+            List<ProductResponse> productResponseList = List.of(productResponse);
+            Page<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 1);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -130,18 +130,18 @@ public class ProductControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(1))
-                    .andExpect(jsonPath("$.content[0].name").value(productDTOList.get(0).getName()))
-                    .andExpect(jsonPath("$.content[0].description").value(productDTOList.get(0).getDescription()))
-                    .andExpect(jsonPath("$.content[0].price").value(productDTOList.get(0).getPrice()))
-                    .andExpect(jsonPath("$.content[0].id").value(productDTOList.get(0).getId()));
+                    .andExpect(jsonPath("$.content[0].name").value(productResponseList.get(0).getName()))
+                    .andExpect(jsonPath("$.content[0].description").value(productResponseList.get(0).getDescription()))
+                    .andExpect(jsonPath("$.content[0].price").value(productResponseList.get(0).getPrice()))
+                    .andExpect(jsonPath("$.content[0].id").value(productResponseList.get(0).getId()));
 
             verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test
         void search_pageable_shouldReturnPage() throws Exception{
-            java.util.List<ProductDTO> productDTOList = java.util.List.of(productDTO);
-            PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 1);
+            java.util.List<ProductResponse> productResponseList = java.util.List.of(productResponse);
+            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 1);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -149,15 +149,15 @@ public class ProductControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content.length()").value(1))
-                    .andExpect(jsonPath("$.content[0].name").value(productDTO.getName()));
+                    .andExpect(jsonPath("$.content[0].name").value(productResponse.getName()));
 
             verify(productService).search(any(ProductFilterDto.class), any(Pageable.class));
         }
 
         @Test
         void search_pageable_shouldReturnEmptyPage() throws Exception{
-            java.util.List<ProductDTO> productDTOList = java.util.List.of();
-            PageImpl<ProductDTO> page = new PageImpl<>(productDTOList, PageRequest.of(0,10), 0);
+            java.util.List<ProductResponse> productResponseList = java.util.List.of();
+            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 0);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -188,14 +188,14 @@ public class ProductControllerTest {
 
         @Test
         void getProductById_shouldReturnProduct() throws Exception{
-            when(productService.getProductById(anyLong())).thenReturn(productDTO);
+            when(productService.getProductById(anyLong())).thenReturn(productResponse);
 
             mockMvc.perform(get("/api/products/{id}", 1L))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.name").value(productDTO.getName()))
-                    .andExpect(jsonPath("$.description").value(productDTO.getDescription()))
-                    .andExpect(jsonPath("$.price").value(productDTO.getPrice()))
-                    .andExpect(jsonPath("$.id").value(productDTO.getId()));
+                    .andExpect(jsonPath("$.name").value(productResponse.getName()))
+                    .andExpect(jsonPath("$.description").value(productResponse.getDescription()))
+                    .andExpect(jsonPath("$.price").value(productResponse.getPrice()))
+                    .andExpect(jsonPath("$.id").value(productResponse.getId()));
             verify(productService).getProductById(anyLong());
         }
 
@@ -251,10 +251,10 @@ public class ProductControllerTest {
 
         @Test
         void updateProductById_shouldReturn200() throws Exception{
-            ProductDTO request = new ProductDTO(1L, "New Product",
-                    "New Description", BigDecimal.valueOf(500), 10, categoryDTO);
+            ProductResponse request = new ProductResponse(1L, "New Product",
+                    "New Description", BigDecimal.valueOf(500), 10, categoryResponse);
 
-            when(productService.updateProduct(anyLong(), any(ProductDTO.class))).thenReturn(request);
+            when(productService.updateProduct(anyLong(), any(ProductResponse.class))).thenReturn(request);
 
             mockMvc.perform(put("/api/products/{id}", 1L)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -266,7 +266,7 @@ public class ProductControllerTest {
                     .andExpect(jsonPath("$.category.id").value(request.getCategory().getId()))
                     .andExpect(jsonPath("$.category.name").value(request.getCategory().getName()));
 
-            verify(productService).updateProduct(anyLong(), any(ProductDTO.class));
+            verify(productService).updateProduct(anyLong(), any(ProductResponse.class));
         }
 
         @Test
@@ -274,21 +274,21 @@ public class ProductControllerTest {
             mockMvc.perform(put("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
 
-            verify(productService, never()).updateProduct(anyLong(), any(ProductDTO.class));
+            verify(productService, never()).updateProduct(anyLong(), any(ProductResponse.class));
         }
 
         @Test
         void updateProductbyId_shouldreturn400_badDTO() throws Exception{
-            ProductDTO request = new ProductDTO(1L, "", "", BigDecimal.valueOf(500), 0, null);
+            ProductResponse request = new ProductResponse(1L, "", "", BigDecimal.valueOf(500), 0, null);
 
-            when(productService.updateProduct(anyLong(), any(ProductDTO.class))).thenReturn(request);
+            when(productService.updateProduct(anyLong(), any(ProductResponse.class))).thenReturn(request);
 
             mockMvc.perform(put("/api/products/{id}", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
 
-            verify(productService, never()).updateProduct(anyLong(), any(ProductDTO.class));
+            verify(productService, never()).updateProduct(anyLong(), any(ProductResponse.class));
         }
     }
 }

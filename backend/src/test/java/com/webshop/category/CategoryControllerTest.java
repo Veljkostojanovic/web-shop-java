@@ -50,10 +50,10 @@ class CategoryControllerTest {
 
         @Test
         void addCategory_shouldReturn201AndCategory() throws Exception {
-            CategoryDTO request = new CategoryDTO(null, "Category");
-            CategoryDTO response = new CategoryDTO(1L, "Category");
+            CategoryResponse request = new CategoryResponse(null, "Category");
+            CategoryResponse response = new CategoryResponse(1L, "Category");
 
-            when(categoryService.addCategory(any(CategoryDTO.class)))
+            when(categoryService.addCategory(any(CategoryResponse.class)))
                     .thenReturn(response);
 
             mockMvc.perform(post("/api/categories")
@@ -63,12 +63,12 @@ class CategoryControllerTest {
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.name").value("Category"));
 
-            verify(categoryService).addCategory(any(CategoryDTO.class));
+            verify(categoryService).addCategory(any(CategoryResponse.class));
         }
 
         @Test
         void addCategory_shouldReturn400() throws Exception {
-            CategoryDTO invalidRequest = new CategoryDTO(null, "");
+            CategoryResponse invalidRequest = new CategoryResponse(null, "");
 
             mockMvc.perform(post("/api/categories")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -85,9 +85,9 @@ class CategoryControllerTest {
 
         @Test
         void updateCategory_shouldReturnCategory() throws Exception {
-            CategoryDTO request = new CategoryDTO(1L, "New Category");
+            CategoryResponse request = new CategoryResponse(1L, "New Category");
 
-            when(categoryService.updateCategory(anyLong(), any(CategoryDTO.class)))
+            when(categoryService.updateCategory(anyLong(), any(CategoryResponse.class)))
                     .thenReturn(request);
 
             mockMvc.perform(put("/api/categories/{id}", 1L)
@@ -96,7 +96,7 @@ class CategoryControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value("New Category"));
 
-            verify(categoryService).updateCategory(anyLong(), any(CategoryDTO.class));
+            verify(categoryService).updateCategory(anyLong(), any(CategoryResponse.class));
         }
     }
 
@@ -107,7 +107,7 @@ class CategoryControllerTest {
 
         @Test
         void getCategoryById_shouldReturnCategory() throws Exception {
-            CategoryDTO dto = new CategoryDTO(1L, "Category");
+            CategoryResponse dto = new CategoryResponse(1L, "Category");
 
             when(categoryService.getCategoryById(anyLong()))
                     .thenReturn(dto);
@@ -137,9 +137,9 @@ class CategoryControllerTest {
 
         @Test
         void getAllCategories_shouldReturnList() throws Exception {
-            List<CategoryDTO> categories = List.of(
-                    new CategoryDTO(1L, "Shoes"),
-                    new CategoryDTO(2L, "Clothes")
+            List<CategoryResponse> categories = List.of(
+                    new CategoryResponse(1L, "Shoes"),
+                    new CategoryResponse(2L, "Clothes")
             );
 
             when(categoryService.getAllCategories())

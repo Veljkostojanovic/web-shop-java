@@ -1,7 +1,7 @@
 package com.webshop.product;
 
 import com.webshop.category.Category;
-import com.webshop.category.CategoryDTO;
+import com.webshop.category.CategoryResponse;
 import com.webshop.category.CategoryRepository;
 import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
@@ -38,22 +38,22 @@ public class ProductServiceImplTest {
 
 
     private Product product;
-    private ProductDTO productDTO;
+    private ProductResponse productResponse;
     private Category category;
-    private CategoryDTO categoryDTO;
+    private CategoryResponse categoryResponse;
 
     @BeforeEach
     public void setUp() {
         category = new Category();
-        categoryDTO = new CategoryDTO();
+        categoryResponse = new CategoryResponse();
 
         category.setId(1L);
-        categoryDTO.setId(1L);
+        categoryResponse.setId(1L);
         category.setName("Category");
-        categoryDTO.setName("Category");
+        categoryResponse.setName("Category");
 
         product = new Product(1L, "Product", "Description", BigDecimal.valueOf(500), 10, category);
-        productDTO = new ProductDTO(1L, "Product", "Description", BigDecimal.valueOf(500), 10, categoryDTO);
+        productResponse = new ProductResponse(1L, "Product", "Description", BigDecimal.valueOf(500), 10, categoryResponse);
     }
 
 
@@ -67,7 +67,7 @@ public class ProductServiceImplTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
             when(productRepository.save(any(Product.class))).thenReturn(product);
 
-            ProductDTO result = productService.addProduct(productDTO);
+            ProductResponse result = productService.addProduct(productResponse);
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals("Product", result.getName());
@@ -83,7 +83,7 @@ public class ProductServiceImplTest {
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             ResourceConflictException exception = Assertions.assertThrows(
-                    ResourceConflictException.class, () -> productService.addProduct(productDTO));
+                    ResourceConflictException.class, () -> productService.addProduct(productResponse));
 
             Assertions.assertNotNull(exception);
             Assertions.assertEquals("Product name already exists", exception.getMessage());
@@ -96,7 +96,7 @@ public class ProductServiceImplTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
-                    ResourceNotFoundException.class, () -> productService.addProduct(productDTO)
+                    ResourceNotFoundException.class, () -> productService.addProduct(productResponse)
             );
 
             Assertions.assertNotNull(exception);
@@ -106,12 +106,12 @@ public class ProductServiceImplTest {
 
         @Test
         void addProduct_NoCategoryId_ThrowsBadRequestException() {
-            productDTO.getCategory().setId(null);
+            productResponse.getCategory().setId(null);
 
             when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
 
             BadRequestException exception = Assertions
-                    .assertThrows(BadRequestException.class,  () -> productService.addProduct(productDTO));
+                    .assertThrows(BadRequestException.class,  () -> productService.addProduct(productResponse));
 
             Assertions.assertEquals("Product must have category", exception.getMessage());
             verify(categoryRepository, never()).findById(anyLong());
@@ -120,12 +120,12 @@ public class ProductServiceImplTest {
 
         @Test
         void addProduct_CategoryObjectIsNull_ThrowsBadRequestException() {
-            productDTO.setCategory(null);
+            productResponse.setCategory(null);
 
             when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
 
             BadRequestException exception = Assertions
-                    .assertThrows(BadRequestException.class, () -> productService.addProduct(productDTO));
+                    .assertThrows(BadRequestException.class, () -> productService.addProduct(productResponse));
             Assertions.assertEquals("Product must have category", exception.getMessage());
             verify(categoryRepository, never()).findById(anyLong());
             verify(productRepository, never()).save(any());
@@ -138,14 +138,14 @@ public class ProductServiceImplTest {
 
         @Test
         void updateProduct_Ok() {
-            ProductDTO request =  new ProductDTO(1L, "New Product",
-                    "New Description", BigDecimal.valueOf(10), 1, categoryDTO);
+            ProductResponse request =  new ProductResponse(1L, "New Product",
+                    "New Description", BigDecimal.valueOf(10), 1, categoryResponse);
 
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
             when(productRepository.save(any(Product.class))).thenReturn(product);
 
-            ProductDTO result = productService.updateProduct(1L, request);
+            ProductResponse result = productService.updateProduct(1L, request);
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals("New Product", result.getName());
@@ -160,7 +160,7 @@ public class ProductServiceImplTest {
             when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
-                    ResourceNotFoundException.class, () -> productService.updateProduct(1L, productDTO)
+                    ResourceNotFoundException.class, () -> productService.updateProduct(1L, productResponse)
             );
 
             Assertions.assertNotNull(exception);
@@ -174,7 +174,7 @@ public class ProductServiceImplTest {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
-                    ResourceNotFoundException.class, () -> productService.updateProduct(1L, productDTO)
+                    ResourceNotFoundException.class, () -> productService.updateProduct(1L, productResponse)
             );
 
             Assertions.assertNotNull(exception);
@@ -184,22 +184,22 @@ public class ProductServiceImplTest {
 
         @Test
         void updateProduct_categoryIdIsNull(){
-            productDTO.setCategory(null);
+            productResponse.setCategory(null);
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
 
-            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productDTO));
+            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productResponse));
             verify(productRepository).save(any(Product.class));
             verify(categoryRepository, never()).findById(anyLong());
         }
 
         @Test
         void updateProduct_categoryHasNoId(){
-            productDTO.getCategory().setId(null);
+            productResponse.getCategory().setId(null);
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
 
-            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productDTO));
+            Assertions.assertDoesNotThrow(() -> productService.updateProduct(1L, productResponse));
             verify(productRepository).save(any(Product.class));
             verify(categoryRepository, never()).findById(anyLong());
         }
@@ -219,7 +219,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getTotalElements());
@@ -242,7 +242,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -261,7 +261,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -280,7 +280,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -299,7 +299,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -318,7 +318,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -337,11 +337,11 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
-            ProductDTO resultProduct = result.getContent().get(0);
+            ProductResponse resultProduct = result.getContent().get(0);
 
             Assertions.assertEquals("Product", resultProduct.getName());
             Assertions.assertEquals(1L, resultProduct.getCategory().getId());
@@ -360,7 +360,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(null, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(null, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -377,7 +377,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(0, result.getTotalElements());
@@ -396,7 +396,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(0, result.getNumber());
@@ -416,7 +416,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductDTO> result = productService.search(filter, PageRequest.of(1,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(1,10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getNumber());
@@ -430,7 +430,7 @@ public class ProductServiceImplTest {
         void getProductById_Ok(){
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
-            ProductDTO result = productService.getProductById(1L);
+            ProductResponse result = productService.getProductById(1L);
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals("Product", result.getName());
@@ -480,7 +480,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-           Page<ProductDTO> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
+           Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getTotalElements());

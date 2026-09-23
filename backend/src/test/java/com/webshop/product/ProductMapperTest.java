@@ -8,7 +8,7 @@ public class ProductMapperTest {
 
     @Test
     void toDTO_Null() {
-        ProductDTO result = ProductMapper.toDTO(null);
+        ProductResponse result = ProductMapper.toDTO(null);
         Assertions.assertNull(result);
     }
 
@@ -22,7 +22,7 @@ public class ProductMapperTest {
     void toDTO_Ok(){
         Product product = new Product(1L, "Product", "Description", BigDecimal.valueOf(100), 10, null);
 
-        ProductDTO result = ProductMapper.toDTO(product);
+        ProductResponse result = ProductMapper.toDTO(product);
         Assertions.assertNotNull(result);
         Assertions.assertEquals(result.getName(), product.getName());
         Assertions.assertEquals(result.getDescription(), product.getDescription());
@@ -33,14 +33,14 @@ public class ProductMapperTest {
 
     @Test
     void toEntity_Ok(){
-        ProductDTO  productDTO = new ProductDTO(1L, "Product", "Description", BigDecimal.valueOf(100), 10, null);
-        Product result = ProductMapper.toEntity(productDTO);
+        ProductResponse productResponse = new ProductResponse(1L, "Product", "Description", BigDecimal.valueOf(100), 10, null);
+        Product result = ProductMapper.toEntity(productResponse);
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(result.getName(), productDTO.getName());
-        Assertions.assertEquals(result.getDescription(), productDTO.getDescription());
-        Assertions.assertEquals(result.getPrice(), productDTO.getPrice());
-        Assertions.assertEquals(result.getStock(), productDTO.getStock());
-        Assertions.assertEquals(result.getId(), productDTO.getId());
+        Assertions.assertEquals(result.getName(), productResponse.getName());
+        Assertions.assertEquals(result.getDescription(), productResponse.getDescription());
+        Assertions.assertEquals(result.getPrice(), productResponse.getPrice());
+        Assertions.assertEquals(result.getStock(), productResponse.getStock());
+        Assertions.assertEquals(result.getId(), productResponse.getId());
     }
 
 }

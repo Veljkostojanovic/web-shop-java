@@ -8,18 +8,18 @@ public class CategoryMapperTest {
     void toDto(){
         Category category = new Category(1L, "Category", null);
 
-        CategoryDTO categoryDTO = CategoryMapper.toDTO(category);
+        CategoryResponse categoryResponse = CategoryMapper.toDTO(category);
 
-        Assertions.assertNotNull(categoryDTO);
-        Assertions.assertEquals(1L, categoryDTO.getId());
-        Assertions.assertEquals("Category", categoryDTO.getName());
+        Assertions.assertNotNull(categoryResponse);
+        Assertions.assertEquals(1L, categoryResponse.getId());
+        Assertions.assertEquals("Category", categoryResponse.getName());
     }
 
     @Test
     void fromDto(){
-        CategoryDTO categoryDTO = new CategoryDTO(1L, "Category");
+        CategoryResponse categoryResponse = new CategoryResponse(1L, "Category");
 
-        Category category = CategoryMapper.toEntity(categoryDTO);
+        Category category = CategoryMapper.toEntity(categoryResponse);
 
         Assertions.assertNotNull(category);
         Assertions.assertNull(category.getId());
@@ -29,8 +29,8 @@ public class CategoryMapperTest {
 
     @Test
     void toDTO_null(){
-        CategoryDTO categoryDTO = CategoryMapper.toDTO(null);
-        Assertions.assertNull(categoryDTO);
+        CategoryResponse categoryResponse = CategoryMapper.toDTO(null);
+        Assertions.assertNull(categoryResponse);
     }
 
     @Test

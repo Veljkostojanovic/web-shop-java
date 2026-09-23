@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
@@ -14,28 +16,28 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
     private final ProductService productService;
 
-
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> search(@ParameterObject @Valid ProductFilterDto filter,
-                                                   @ParameterObject Pageable pageable) {
-        Page<ProductDTO> page = productService.search(filter, pageable);
+    public ResponseEntity<Page<ProductResponse>> searchProducts(@ParameterObject @Valid ProductFilterDto filter, @ParameterObject Pageable pageable) {
+        Page<ProductResponse> page = productService.search(filter, pageable);
         return ResponseEntity.ok(page);
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO){
-        ProductDTO newProductDTO = productService.addProduct(productDTO);
-        return ResponseEntity.ok(newProductDTO);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductCreateRequest productCreateRequest){
+        ProductResponse created = productService.addProduct(productCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> getById(@PathVariable Long id){
-        ProductDTO productDTO = productService.getProductById(id);
-        return ResponseEntity.ok().body(productDTO);
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id){
+        ProductResponse productResponse = productService.getProductById(id);
+        return ResponseEntity.ok(productResponse);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ProductDTO> deleteProductById(@PathVariable Long id){
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteProductById(@PathVariable Long id){
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
@@ -49,7 +51,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO){
-        return ResponseEntity.ok().body(productService.updateProduct(id, productDTO));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductUpdateRequest productUpdateRequest){
+        return ResponseEntity.ok().body(productService.updateProduct(id, productUpdateRequest));
     }
 }
