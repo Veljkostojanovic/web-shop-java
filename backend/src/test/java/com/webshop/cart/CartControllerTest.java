@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webshop.JWT.CustomUserDetailsService;
 import com.webshop.JWT.JwtService;
 import com.webshop.JWT.UserPrincipal;
-import com.webshop.cartItem.CartItemDTO;
 import com.webshop.common.exceptions.GlobalExceptionHandler;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.user.User;
@@ -47,13 +46,13 @@ class CartControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
-    private CartDTO cart;
+    private CartResponse cart;
     private UserPrincipal userPrincipal;
 
     @BeforeEach
     void setUp() {
-        CartItemDTO cartItemDTO = new CartItemDTO(1L, "Product", BigDecimal.valueOf(10), 2, BigDecimal.valueOf(20));
-        cart = new CartDTO(List.of(cartItemDTO), BigDecimal.valueOf(20));
+        CartItemResponse cartItemResponse = new CartItemResponse(1L, "Product", BigDecimal.valueOf(10), 2, BigDecimal.valueOf(20));
+        cart = new CartResponse(List.of(cartItemResponse), BigDecimal.valueOf(20));
         
         User user = new User();
         user.setId(1L);
@@ -85,7 +84,7 @@ class CartControllerTest {
 
     @Test
     void addProductToCart_ValidRequest_ReturnsOkandUpdateCart() throws Exception {
-        AddItemRequest request = new AddItemRequest(1L, 2);
+        AddCartItemRequest request = new AddCartItemRequest(1L, 2);
 
         when(cartService.addProductToCart(1L, 1L, 2)).thenReturn(cart);
 
@@ -101,7 +100,7 @@ class CartControllerTest {
 
     @Test
     void addProductToCart_ProductNotFound_ThrowsResourceNotFoundException() throws Exception {
-        AddItemRequest request = new AddItemRequest(90L, 2);
+        AddCartItemRequest request = new AddCartItemRequest(90L, 2);
 
         when(cartService.addProductToCart(1L, 90L, 2))
                 .thenThrow(new ResourceNotFoundException("Product not found"));
@@ -115,7 +114,7 @@ class CartControllerTest {
 
     @Test
     void addProductToCart_BadRequest_ThrowsBadRequest() throws Exception {
-        AddItemRequest request = new AddItemRequest(1L, -1);
+        AddCartItemRequest request = new AddCartItemRequest(1L, -1);
 
         mockMvc.perform(post("/api/cart/items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +124,7 @@ class CartControllerTest {
 
     @Test
     void updateItemQuantity_ValidRequest_ReturnsOkAndUpdatedCart() throws Exception {
-        AddItemRequest request = new AddItemRequest(1L, 5);
+        AddCartItemRequest request = new AddCartItemRequest(1L, 5);
         
         when(cartService.updateItemQuantity(1L, 1L, 5)).thenReturn(cart);
 
@@ -140,7 +139,7 @@ class CartControllerTest {
 
     @Test
     void updateItemQuantity_ProductNotFound_ThrowsResourceNotFound() throws Exception {
-        AddItemRequest request = new AddItemRequest(1L, 5);
+        AddCartItemRequest request = new AddCartItemRequest(1L, 5);
         
         when(cartService.updateItemQuantity(1L, 1L, 5))
                 .thenThrow(new ResourceNotFoundException("Product not found"));

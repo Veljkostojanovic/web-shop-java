@@ -46,7 +46,7 @@ class OrderControllerTest {
     private JwtAuthFilter jwtAuthFilter;
 
     private UserPrincipal userPrincipal;
-    private OrderDTO sampleOrderDTO;
+    private OrderResponse sampleOrderResponse;
     private final Long USER_ID = 1L;
 
     @BeforeEach
@@ -57,7 +57,7 @@ class OrderControllerTest {
                 new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        sampleOrderDTO = new OrderDTO();
+        sampleOrderResponse = new OrderResponse();
     }
 
     @Nested
@@ -66,7 +66,7 @@ class OrderControllerTest {
 
         @Test
         void checkout_Success_Returns201() throws Exception {
-            when(orderService.createOrder(USER_ID)).thenReturn(sampleOrderDTO);
+            when(orderService.createOrder(USER_ID)).thenReturn(sampleOrderResponse);
 
             mockMvc.perform(post("/api/orders/checkout")
                             .contentType(MediaType.APPLICATION_JSON))
@@ -99,7 +99,7 @@ class OrderControllerTest {
         @Test
         void getOrder_Success_Returns200() throws Exception {
             Long orderId = 100L;
-            when(orderService.getOrder(orderId, USER_ID)).thenReturn(sampleOrderDTO);
+            when(orderService.getOrder(orderId, USER_ID)).thenReturn(sampleOrderResponse);
 
             mockMvc.perform(get("/api/orders/{orderId}", orderId)
                             .contentType(MediaType.APPLICATION_JSON))
@@ -139,7 +139,7 @@ class OrderControllerTest {
 
         @Test
         void getOrdersByUserId_DefaultParams_ReturnsPagedOrders() throws Exception {
-            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO));
+            Page<OrderResponse> page = new PageImpl<>(List.of(sampleOrderResponse));
             when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
                     .thenReturn(page);
 
@@ -154,7 +154,7 @@ class OrderControllerTest {
 
         @Test
         void getOrdersByUserId_WithPaginationQueryParams_PassesPageableToService() throws Exception {
-            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO), PageRequest.of(1, 5), 10);
+            Page<OrderResponse> page = new PageImpl<>(List.of(sampleOrderResponse), PageRequest.of(1, 5), 10);
 
             when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
                     .thenReturn(page);
@@ -174,7 +174,7 @@ class OrderControllerTest {
 
         @Test
         void getOrdersByUserId_EmptyResults_ReturnsEmptyPage() throws Exception {
-            Page<OrderDTO> emptyPage = new PageImpl<>(Collections.emptyList());
+            Page<OrderResponse> emptyPage = new PageImpl<>(Collections.emptyList());
             when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
@@ -189,7 +189,7 @@ class OrderControllerTest {
 
         @Test
         void getOrdersByUserId_WithFilterParams_ExecutesSuccessfully() throws Exception {
-            Page<OrderDTO> page = new PageImpl<>(List.of(sampleOrderDTO));
+            Page<OrderResponse> page = new PageImpl<>(List.of(sampleOrderResponse));
             when(orderService.getOrdersByUserId(eq(USER_ID), any(OrderFilterRequest.class), any(Pageable.class)))
                     .thenReturn(page);
 

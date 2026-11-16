@@ -2,6 +2,7 @@ package com.webshop.config;
 
 import com.webshop.user.User;
 import com.webshop.user.UserRepository;
+import com.webshop.user.UserRole;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +21,12 @@ public class AdminInitializer {
     @PostConstruct
     public void createAdmin(){
         if(!userRepository.existsByUsername("admin")){
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setEmail("admin@webshop.com");
-            admin.setRole("ADMIN");
-            admin.setPassword(passwordEncoder.encode(password));
+            User admin = new User(
+                    "admin@webshop.com",
+                    "admin",
+                    passwordEncoder.encode(password),
+                    UserRole.ADMIN
+            );
             userRepository.save(admin);
         }
     }

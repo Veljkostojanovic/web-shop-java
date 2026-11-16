@@ -23,7 +23,7 @@ public class UserPrincipal implements UserDetails {
         id = user.getId();
         email = user.getEmail();
         username = user.getUsername();
-        password = user.getPassword();
+        password = user.getPasswordHash();
 
         authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole())

@@ -77,28 +77,28 @@ public class OrderSpecification {
 
         if (filter == null) return specification;
 
-        if (filter.getUserId() != null) {
-            specification = specification.and(hasUserId(filter.getUserId()));
+        if (filter.userId() != null) {
+            specification = specification.and(hasUserId(filter.userId()));
         }
 
-        if (filter.getStatus() != null) {
-            specification = specification.and(hasStatus(filter.getStatus()));
+        if (filter.status() != null) {
+            specification = specification.and(hasStatus(filter.status()));
         }
 
-        if (filter.getStartDate() != null) {
-            specification = specification.and(createdAfter(filter.getStartDate()));
+        if (filter.startDate() != null) {
+            specification = specification.and(createdAfter(filter.startDate()));
         }
 
-        if (filter.getEndDate() != null) {
-            specification = specification.and(createdBefore(filter.getEndDate()));
+        if (filter.endDate() != null) {
+            specification = specification.and(createdBefore(filter.endDate()));
         }
 
-        if (filter.getMinPrice() != null) {
-            specification = specification.and(priceGreaterThanOrEqual(filter.getMinPrice()));
+        if (filter.minPrice() != null) {
+            specification = specification.and(priceGreaterThanOrEqual(filter.minPrice()));
         }
 
-        if (filter.getMaxPrice() != null) {
-            specification = specification.and(priceLessThanOrEqual(filter.getMaxPrice()));
+        if (filter.maxPrice() != null) {
+            specification = specification.and(priceLessThanOrEqual(filter.maxPrice()));
         }
 
         return specification;

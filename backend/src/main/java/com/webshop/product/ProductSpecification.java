@@ -1,7 +1,5 @@
 package com.webshop.product;
 
-import com.webshop.category.Category;
-import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -28,15 +26,9 @@ public class ProductSpecification {
                 cb.greaterThanOrEqualTo(root.get("stock"), stock);
     }
 
-    public static Specification<Product> hasCategory(Long categoryId){
-        return (root, query, cb) -> {
-            if(categoryId == null)
-                return null;
-
-            Join<Product, Category> categoryJoin = root.join("category");
-
-            return cb.equal(categoryJoin.get("id"), categoryId);
-        };
+    private static Specification<Product> hasCategory(Long id) {
+        return id == null ? null
+                : (root, q, cb) -> cb.equal(root.get("category").get("id"), id);
     }
 
     public static Specification<Product> buildSpecification(ProductFilterDto filter){
@@ -44,7 +36,7 @@ public class ProductSpecification {
 
         if (filter == null) return specification;
 
-        if(filter.name() != null){
+        if(filter.name() != null && !filter.name().isBlank()){
             specification = specification.and(ProductSpecification.hasName(filter.name()));
         }
 
@@ -60,8 +52,8 @@ public class ProductSpecification {
             specification = specification.and(ProductSpecification.minPrice(filter.minPrice()));
         }
 
-        if(filter.stock() != null){
-            specification = specification.and(ProductSpecification.minStock(filter.stock()));
+        if(filter.minStock() != null){
+            specification = specification.and(ProductSpecification.minStock(filter.minStock()));
         }
         return specification;
     }

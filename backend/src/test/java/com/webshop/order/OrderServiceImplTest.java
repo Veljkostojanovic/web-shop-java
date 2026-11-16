@@ -2,8 +2,8 @@ package com.webshop.order;
 
 import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
-import com.webshop.cartItem.CartItem;
-import com.webshop.common.exceptions.InsufficientResourcesException;
+import com.webshop.cart.CartItem;
+import com.webshop.common.exceptions.InsufficientStockException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
@@ -108,7 +108,7 @@ class OrderServiceImplTest {
                 return saved;
             });
 
-            OrderDTO result = orderServiceImpl.createOrder(1L);
+            OrderResponse result = orderServiceImpl.createOrder(1L);
 
             assertNotNull(result);
             assertEquals(100L, result.getOrderId());
@@ -166,7 +166,7 @@ class OrderServiceImplTest {
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(productRepository.findAllByIdInWithLock(anyList())).thenReturn(List.of(product));
 
-            InsufficientResourcesException exception = assertThrows(InsufficientResourcesException.class,
+            InsufficientStockException exception = assertThrows(InsufficientStockException.class,
                     () -> orderServiceImpl.createOrder(1L));
 
             assertEquals("Not enough stock for: Test Product", exception.getMessage());
@@ -183,7 +183,7 @@ class OrderServiceImplTest {
         void getOrderById_ExistingOrder_ReturnsOrderDTO() {
             when(orderRepository.findById(anyLong())).thenReturn(Optional.of(order));
 
-            OrderDTO result = orderServiceImpl.getOrderById(100L);
+            OrderResponse result = orderServiceImpl.getOrderById(100L);
 
             assertNotNull(result);
             assertEquals(100L, result.getOrderId());

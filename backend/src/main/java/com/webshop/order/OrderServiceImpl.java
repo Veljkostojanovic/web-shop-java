@@ -2,9 +2,9 @@ package com.webshop.order;
 
 import com.webshop.cart.Cart;
 import com.webshop.cart.CartRepository;
-import com.webshop.cartItem.CartItem;
+import com.webshop.cart.CartItem;
 import com.webshop.common.exceptions.BadRequestException;
-import com.webshop.common.exceptions.InsufficientResourcesException;
+import com.webshop.common.exceptions.InsufficientStockException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,8 +38,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDTO createOrder(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
+    public OrderResponse createOrder(Long userId) {
+
+        cartRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+
+        Cart cart = cartRepository.findWithItemsByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("No cart found for user: " + userId));
 
         if (cart.getItems().isEmpty()) {
@@ -46,27 +51,29 @@ public class OrderServiceImpl implements OrderService {
         }
 
         var user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id = " + userId));
 
-        List<Long> productIds = cart.getItems().stream().map(CartItem::getProductId).toList();
+        List<Long> productIds = cart.getItems()
+                .stream()
+                .map(item -> item.getProduct().getId())
+                .toList();
 
         Map<Long, Product> productMap = productRepository.findAllByIdInWithLock(productIds)
-                .stream().collect(Collectors.toMap(Product::getId, p -> p));
+                .stream().collect(Collectors.toMap(Product::getId, Function.identity()));
 
         BigDecimal totalAmount = BigDecimal.ZERO;
-
         OrderEntity order = new OrderEntity();
-        order.setUser(user);
+        order.setUser(cart.getUser());
         order.setOrderDate(LocalDateTime.now());
         order.setOrderItems(new ArrayList<>());
 
         for (var cartItem : cart.getItems()) {
-            var product = productMap.get(cartItem.getProductId());
+            var product = productMap.get(cartItem.getProduct().getId());
 
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new InsufficientResourcesException("Not enough stock for: " + product.getName());
+                throw new InsufficientStockException("Not enough stock for: " + product.getName());
             }
-            product.setStock(product.getStock() - cartItem.getQuantity());
+            product.decreaseStock(cartItem.getQuantity());
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
@@ -82,8 +89,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
 
         OrderEntity savedOrder = orderRepository.save(order);
-
-        cart.getItems().clear();
+        cart.clear();
         cartRepository.save(cart);
 
         return OrderMapper.mapToDTO(savedOrder);
@@ -91,14 +97,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public OrderDTO getOrderById(Long orderId) {
+    public OrderResponse getOrderById(Long orderId) {
         var order = orderRepository.findById(orderId)
                 .orElseThrow( () -> new ResourceNotFoundException("Order not found with id: " + orderId) );
         return OrderMapper.mapToDTO(order);
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDTO> getOrdersByUserId(Long userId, OrderFilterRequest filterRequest, Pageable pageable){
+    public Page<OrderResponse> getOrdersByUserId(Long userId, OrderFilterRequest filterRequest, Pageable pageable){
         OrderFilter filter = createOrderFilter(userId, filterRequest);
         validateSort(pageable);
         Specification<OrderEntity> spec = OrderSpecification.buildSpecification(filter);
@@ -107,16 +113,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO getOrder(Long orderId, Long userId) {
+    public OrderResponse getOrder(Long orderId, Long userId) {
         OrderEntity order = orderRepository
                 .findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id = " + orderId));
 
         return OrderMapper.mapToDTO(order);
     }
 
     @Override
-    public Page<OrderDTO> getOrders(OrderFilter filter, Pageable pageable) {
+    public Page<OrderResponse> getOrders(OrderFilter filter, Pageable pageable) {
         validateSort(pageable);
 
         Specification<OrderEntity> spec = OrderSpecification.buildSpecification(filter);
@@ -125,23 +131,20 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderMapper::mapToDTO);
     }
 
-    private Pageable validateSort(Pageable pageable) {
+    private void validateSort(Pageable pageable) {
         for(Sort.Order order : pageable.getSort()){
             if(!ALLOWED_SORT_FIELDS.contains(order.getProperty())){
                 throw new BadRequestException("Invalid sort field: " + order.getProperty());
             }
         }
-        return pageable;
     }
 
     private OrderFilter createOrderFilter(Long userId, OrderFilterRequest filterRequest){
-        OrderFilter orderFilter = new OrderFilter();
-        orderFilter.setUserId(userId);
-        orderFilter.setStatus(filterRequest.getStatus());
-        orderFilter.setMinPrice(filterRequest.getMinPrice());
-        orderFilter.setMaxPrice(filterRequest.getMaxPrice());
-        orderFilter.setStartDate(filterRequest.getStartDate());
-        orderFilter.setEndDate(filterRequest.getEndDate());
-        return orderFilter;
+        return new OrderFilter(userId,
+                filterRequest.startDate(),
+                filterRequest.endDate(),
+                filterRequest.minPrice(),
+                filterRequest.maxPrice(),
+                filterRequest.status());
     }
 }

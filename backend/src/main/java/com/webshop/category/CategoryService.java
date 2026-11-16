@@ -1,12 +1,18 @@
 package com.webshop.category;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
     CategoryResponse addCategory(CategoryCreateRequest categoryCreateRequest);
+
     CategoryResponse updateCategory(Long categoryId, CategoryUpdateRequest categoryUpdateRequest);
+
     CategoryResponse getCategoryById(Long categoryId);
-    List<CategoryResponse> getAllCategories();
+
+    Page<CategoryResponse> getAllCategories(Pageable pageable);
+
     void deleteCategory(Long categoryId);
+
     boolean existsByNameIgnoreCase(String name);
 }

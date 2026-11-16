@@ -1,9 +1,11 @@
 package com.webshop.cart;
 
+import com.webshop.user.User;
+
 public interface CartService {
-    CartDTO getOrCreateCart(Long userId);
-    CartDTO addProductToCart(Long userId, Long productId, int quantity);
-    CartDTO updateItemQuantity(Long userId, Long productId, int quantity);
-    CartDTO removeItemFromCart(Long userId, Long productId);
+    CartResponse getCart(Long userId);
+    CartResponse addProductToCart(Long userId, Long productId, Integer quantity);
+    CartResponse updateItemQuantity(Long userId, Long productId, Integer quantity);
+    CartResponse removeItemFromCart(Long userId, Long productId);
     void clearCart(Long userId);
 }

@@ -43,7 +43,7 @@ class CustomUserDetailsServiceTest {
 
         assertNotNull(userDetails);
         assertEquals(userEntity.getUsername(), userDetails.getUsername());
-        assertEquals(userEntity.getPassword(), userDetails.getPassword());
+        assertEquals(userEntity.getPasswordHash(), userDetails.getPassword());
 
 
         assertTrue(userDetails.getAuthorities().stream()

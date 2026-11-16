@@ -1,13 +1,15 @@
 package com.webshop.cart;
 
-import com.webshop.cartItem.CartItem;
-import com.webshop.cartItem.CartItemDTO;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
+import com.webshop.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -22,110 +24,115 @@ public class CartServiceImpl implements CartService{
     private final ProductRepository productRepository;
 
     @Override
-    public CartDTO getOrCreateCart(Long userId) {
-        log.info("Getting cart for userId = {}", userId);
-        Cart cart = getCartEntity(userId);
+    @Transactional(readOnly = true)
+    public CartResponse getCart(Long userId) {
+        requiredId(userId, "User ID");
+        Cart cart = findCartWithItems(userId);
+        log.info("Get cart for user with id: {}", userId);
         return mapToDTO(cart);
     }
 
     @Override
-    public CartDTO addProductToCart(Long userId, Long productId, int quantity) {
-        log.info("Adding product = {}, userId = {}, quantity = {}",  productId, userId, quantity);
-        Cart cart = getCartEntity(userId);
+    @Transactional
+    public CartResponse addProductToCart(Long userId, Long productId, Integer quantity) {
+        requiredId(userId, "User ID");
+        requiredId(productId, "Product ID");
+        CartItem.validateQuantity(quantity);
+
+        Cart cart = findCartWithItemsForUpdate(userId);
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
-        cart.getItems().stream()
-                .filter(item -> item.getProductId().equals(product.getId()))
-                .findFirst()
-                .ifPresentOrElse(
-                        existingItem -> existingItem.setQuantity(existingItem.getQuantity() + quantity),
-                        () -> {
-                            CartItem newItem = new CartItem();
-                            newItem.setCart(cart);
-                            newItem.setProductId(productId);
-                            newItem.setQuantity(quantity);
-                            cart.getItems().add(newItem);
-                        }
-                );
-        Cart savedCart = cartRepository.save(cart);
+        cart.addItem(product, quantity);
 
         log.info("Added product = {}, userId = {}, quantity = {}",  productId, userId, quantity);
-        return mapToDTO(savedCart);
+        return mapToDTO(cart);
     }
 
     @Override
-    public CartDTO updateItemQuantity(Long userId, Long productId, int quantity) {
-        log.info("Updating product = {}, userId = {}, quantity = {}", productId, userId, quantity);
-        Cart cart = getCartEntity(userId);
+    @Transactional
+    public CartResponse updateItemQuantity(Long userId, Long productId, Integer quantity) {
+        requiredId(userId, "User ID");
+        requiredId(productId, "Product ID");
+        CartItem.validateQuantity(quantity);
 
-        CartItem cartItem = cart.getItems().stream()
-                        .filter(item -> item.getProductId().equals(productId))
-                        .findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        Cart cart = findCartWithItemsForUpdate(userId);
 
-        if(quantity <= 0)
-            cart.getItems().remove(cartItem);
-        else
-            cartItem.setQuantity(quantity);
+        cart.updateItem(productId, quantity);
 
         log.info("Updated item, productId = {}, userId = {}, quantity = {}", productId, userId, quantity);
-        return mapToDTO(cartRepository.save(cart));
+        return mapToDTO(cart);
     }
 
     @Override
-    public CartDTO removeItemFromCart(Long userId, Long productId) {
-        log.info("Removing product = {}, userId = {}", productId, userId);
-        Cart cart = getCartEntity(userId);
+    @Transactional
+    public CartResponse removeItemFromCart(Long userId, Long productId) {
+        requiredId(userId, "User ID");
+        requiredId(productId, "Product ID");
 
-        CartItem cartItem = cart.getItems()
-                        .stream()
-                        .filter(item -> item.getProductId().equals(productId))
-                        .findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-
-        cart.getItems().remove(cartItem);
-        Cart savedCart = cartRepository.save(cart);
+        Cart cart = findCartWithItemsForUpdate(userId);
+        cart.deleteItem(productId);
         log.info("Removed product = {}, userId = {}", productId, userId);
-        return mapToDTO(savedCart);
+        return mapToDTO(cart);
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
-        log.info("Clearing cart = {}", userId);
-        cartRepository.findByUserId(userId)
-                .ifPresent( cart -> {
-                    cart.getItems().clear();
-                    cartRepository.save(cart);
-                });
+        requiredId(userId, "User ID");
+
+        Cart cart = lockCart(userId);
+        cart.clear();
     }
 
-    private Cart getCartEntity(Long userId) {
-        return cartRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setUserId(userId);
-                    return cartRepository.save(newCart);
-                });
+    private Cart findCartWithItemsForUpdate(Long userId){
+        lockCart(userId);
+        return findCartWithItems(userId);
     }
 
+    private Cart lockCart(Long userId){
+        return cartRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+    }
 
-    private CartDTO mapToDTO(Cart cart) {
+    private Cart findCartWithItems(Long userId){
+        requiredId(userId, "User ID");
+        return cartRepository
+                .findWithItemsByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+    }
+
+    private void requiredId(Long id, String field){
+        if(id == null){
+            throw new IllegalArgumentException(field + " is required");
+        }
+        if(id <= 0){
+            throw new IllegalArgumentException(field + " must be positive");
+        }
+    }
+
+    private CartResponse mapToDTO(Cart cart) {
+        if(cart == null)return null;
+
         List<Long> productIds = cart.getItems().stream()
-                .map(CartItem::getProductId)
+                .map(item -> item.getProduct().getId())
                 .toList();
 
         Map<Long, Product> productMap = productRepository.findAllById(productIds)
                 .stream().collect(Collectors.toMap(Product::getId, p -> p));
 
-        List<CartItemDTO> itemDTOs = cart.getItems().stream()
+        List<CartItemResponse> cartItemsResponse = cart.getItems().stream()
                 .map(item -> {
-                    Product product = productMap.get(item.getProductId());
+                    Product product = productMap.get(item.getProduct().getId());
+
+                    if(product == null){
+                        throw new ResourceNotFoundException("Product not found with id: " + item.getProduct().getId());
+                    }
 
                     BigDecimal price = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
-                    return new CartItemDTO(
+                    return new CartItemResponse(
                             product.getId(),
                             product.getName(),
                             product.getPrice(),
@@ -133,10 +140,10 @@ public class CartServiceImpl implements CartService{
                             price
                     );
                 }).toList();
-        BigDecimal totalPrice = itemDTOs.stream()
-                .map(CartItemDTO::getTotalPrice)
+        BigDecimal totalPrice = cartItemsResponse.stream()
+                .map(CartItemResponse::totalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new CartDTO(itemDTOs, totalPrice);
+        return new CartResponse(cartItemsResponse, totalPrice);
     }
 }

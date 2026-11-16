@@ -9,7 +9,7 @@ public class OrderItemMapperTest {
 
     @Test
     void toEntity_Null(){
-        OrderItemDTO result = OrderItemMapper.toDTO(null);
+        OrderItemResponse result = OrderItemMapper.toDTO(null);
         Assertions.assertNull(result);
     }
 
@@ -24,7 +24,7 @@ public class OrderItemMapperTest {
         orderItem.setPrice(BigDecimal.valueOf(500));
         orderItem.setQuantity(10);
 
-        OrderItemDTO result = OrderItemMapper.toDTO(orderItem);
+        OrderItemResponse result = OrderItemMapper.toDTO(orderItem);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(10, result.getQuantity());

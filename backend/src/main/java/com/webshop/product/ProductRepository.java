@@ -20,13 +20,13 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @EntityGraph(attributePaths = {"category"})
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
 
-    List<Product> findByCategoryId(Long categoryId);
-    List<Product> findByNameContainingIgnoreCase(String name);
+    @EntityGraph(attributePaths = {"category"})
     Optional<Product> findById(Long id);
+
     boolean existsByNameIgnoreCase(String name);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Product p WHERE p.id IN :ids")
+    @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id")
     List<Product> findAllByIdInWithLock(@Param("ids") List<Long> ids);
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);

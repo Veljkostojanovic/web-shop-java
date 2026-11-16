@@ -1,6 +1,5 @@
 package com.webshop.cart;
 
-import com.webshop.cartItem.CartItem;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
 import com.webshop.product.ProductRepository;
@@ -68,7 +67,7 @@ class CartServiceImplTest {
             when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.of(cart));
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
 
-            CartDTO result = cartServiceImpl.getOrCreateCart(1L);
+            CartResponse result = cartServiceImpl.getOrCreateCart(1L);
 
             assertNotNull(result);
             assertEquals(1, result.getItems().size());
@@ -82,7 +81,7 @@ class CartServiceImplTest {
             when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.empty());
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result = cartServiceImpl.getOrCreateCart(1L);
+            CartResponse result = cartServiceImpl.getOrCreateCart(1L);
 
             assertNotNull(result);
             assertTrue(result.getItems().isEmpty());
@@ -102,7 +101,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result = cartServiceImpl.addProductToCart(1L, 1L, 3);
+            CartResponse result = cartServiceImpl.addProductToCart(1L, 1L, 3);
 
             assertNotNull(result);
             assertEquals(1L, result.getItems().size());
@@ -121,7 +120,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result = cartServiceImpl.addProductToCart(1L, 1L, 3);
+            CartResponse result = cartServiceImpl.addProductToCart(1L, 1L, 3);
 
             assertNotNull(result);
             assertEquals(1L, result.getItems().size());
@@ -158,7 +157,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result =  cartServiceImpl.updateItemQuantity(1L, 1L, 5);
+            CartResponse result =  cartServiceImpl.updateItemQuantity(1L, 1L, 5);
 
             assertNotNull(result);
             assertEquals(1, result.getItems().size());
@@ -174,7 +173,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result =  cartServiceImpl.updateItemQuantity(1L, 1L, 0);
+            CartResponse result =  cartServiceImpl.updateItemQuantity(1L, 1L, 0);
 
             assertNotNull(result);
             assertTrue(result.getItems().isEmpty());
@@ -193,7 +192,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartDTO result = cartServiceImpl.removeItemFromCart(1L, 1L);
+            CartResponse result = cartServiceImpl.removeItemFromCart(1L, 1L);
 
             assertNotNull(result);
             assertTrue(result.getItems().isEmpty());

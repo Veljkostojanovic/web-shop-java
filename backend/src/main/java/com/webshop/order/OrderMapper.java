@@ -3,17 +3,17 @@ package com.webshop.order;
 import java.math.BigDecimal;
 
 public class OrderMapper {
-    public static OrderDTO mapToDTO(OrderEntity order){
+    public static OrderResponse mapToDTO(OrderEntity order){
         var itemsDTO = order.getOrderItems().stream()
                 .map(OrderMapper::mapItemToDTO)
                 .toList();
-        return new OrderDTO(order.getId(), order.getOrderDate(), order.getTotalAmount(), itemsDTO);
+        return new OrderResponse(order.getId(), order.getOrderDate(), order.getTotalAmount(), itemsDTO);
     }
 
-    public static OrderItemDTO mapItemToDTO(OrderItem item) {
+    public static OrderItemResponse mapItemToDTO(OrderItem item) {
         var itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
-        return new OrderItemDTO(
+        return new OrderItemResponse(
                 item.getProduct().getId(),
                 item.getProduct().getName(),
                 item.getPrice(),

@@ -14,7 +14,6 @@ public class AuthService {
     private final UserService userService;
     private final JwtService jwtService;
 
-
     public LoginResponse login(LoginRequest loginRequest) {
         User user = userService.login(loginRequest);
         String token = jwtService.generateToken(user);

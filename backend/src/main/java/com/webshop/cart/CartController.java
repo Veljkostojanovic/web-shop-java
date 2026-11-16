@@ -3,53 +3,50 @@ package com.webshop.cart;
 import com.webshop.JWT.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-
-
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/cart")
+@RequestMapping("/api/v1/cart")
 public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ResponseEntity<CartDTO> getCart(@AuthenticationPrincipal UserPrincipal user) {
-        return ResponseEntity.ok(cartService.getOrCreateCart(user.getId()));
+    public CartResponse getCart(@AuthenticationPrincipal UserPrincipal user) {
+        return cartService.getCart(user.getId());
     }
 
     @PostMapping("/items")
-    public ResponseEntity<CartDTO> addItemToCart(
+    public ResponseEntity<CartResponse> addItemToCart(
             @AuthenticationPrincipal UserPrincipal user,
-            @Valid @RequestBody AddItemRequest request
-    ){
-        CartDTO updatedCart = cartService.addProductToCart(user.getId(), request.getProductId(), request.getQuantity());
+            @RequestBody @Valid AddCartItemRequest request){
+        CartResponse updatedCart = cartService.addProductToCart(user.getId(), request.productId(), request.quantity());
         return ResponseEntity.ok(updatedCart);
     }
 
     @PutMapping("/items/{productId}")
-    public ResponseEntity<CartDTO> updateItemQuantity(
+    public ResponseEntity<CartResponse> updateItemQuantity(
             @AuthenticationPrincipal UserPrincipal user,
-            @Valid @RequestBody AddItemRequest request) {
-
-        CartDTO updatedCart = cartService.updateItemQuantity(user.getId(), request.getProductId(), request.getQuantity());
+            @PathVariable Long productId,
+            @RequestBody @Valid UpdateCartItemRequest request) {
+        CartResponse updatedCart = cartService.updateItemQuantity(user.getId(), productId, request.quantity());
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping("/items/{productId}")
-    public ResponseEntity<CartDTO> removeItemFromCart(
+    public ResponseEntity<CartResponse> removeItemFromCart(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long productId) {
-
-        CartDTO updatedCart = cartService.removeItemFromCart(user.getId(), productId);
+        CartResponse updatedCart = cartService.removeItemFromCart(user.getId(), productId);
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserPrincipal user) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCart(@AuthenticationPrincipal UserPrincipal user) {
         cartService.clearCart(user.getId());
-        return ResponseEntity.noContent().build();
     }
 }

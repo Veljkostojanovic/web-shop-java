@@ -8,7 +8,7 @@ public class CategoryMapperTest {
     void toDto(){
         Category category = new Category(1L, "Category", null);
 
-        CategoryResponse categoryResponse = CategoryMapper.toDTO(category);
+        CategoryResponse categoryResponse = CategoryMapper.toResponse(category);
 
         Assertions.assertNotNull(categoryResponse);
         Assertions.assertEquals(1L, categoryResponse.getId());
@@ -29,7 +29,7 @@ public class CategoryMapperTest {
 
     @Test
     void toDTO_null(){
-        CategoryResponse categoryResponse = CategoryMapper.toDTO(null);
+        CategoryResponse categoryResponse = CategoryMapper.toResponse(null);
         Assertions.assertNull(categoryResponse);
     }
 

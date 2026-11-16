@@ -1,6 +1,7 @@
 package com.webshop.JWT;
 
 import com.webshop.user.User;
+import com.webshop.user.UserIdentity;
 import com.webshop.user.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +18,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(
+                        UserIdentity.normalizeUsername(username))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new UserPrincipal(user);

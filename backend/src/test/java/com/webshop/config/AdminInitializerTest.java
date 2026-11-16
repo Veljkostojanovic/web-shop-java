@@ -47,7 +47,7 @@ class AdminInitializerTest {
         assertEquals("admin", savedUser.getUsername());
         assertEquals("admin@webshop.com", savedUser.getEmail());
         assertEquals("ADMIN", savedUser.getRole());
-        assertEquals("encodedPassword", savedUser.getPassword());
+        assertEquals("encodedPassword", savedUser.getPasswordHash());
     }
 
     @Test

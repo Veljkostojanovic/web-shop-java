@@ -1,7 +1,5 @@
 package com.webshop.cart;
 
-import com.webshop.cartItem.CartItem;
-import com.webshop.cartItem.CartItemDTO;
 import com.webshop.product.ProductResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,8 +10,8 @@ public class CartMapperTest {
 
     @Test
     void toDto_NullDto() throws Exception {
-        CartDTO cartDTO = CartMapper.toDTO(null, null);
-        Assertions.assertNull(cartDTO);
+        CartResponse cartResponse = CartMapper.toDTO(null, null);
+        Assertions.assertNull(cartResponse);
     }
 
     @Test
@@ -22,22 +20,22 @@ public class CartMapperTest {
         cartItem.setProductId(1L);
         cartItem.setQuantity(1);
 
-        CartItemDTO cartItemDTO = new  CartItemDTO();
-        cartItemDTO.setProductId(1L);
-        cartItemDTO.setQuantity(1);
-        cartItemDTO.setTotalPrice(BigDecimal.valueOf(500));
+        CartItemResponse cartItemResponse = new CartItemResponse();
+        cartItemResponse.setProductId(1L);
+        cartItemResponse.setQuantity(1);
+        cartItemResponse.setTotalPrice(BigDecimal.valueOf(500));
 
         List<CartItem> cartItems = List.of(cartItem);
-        List<CartItemDTO> cartItemDTOs = List.of(cartItemDTO);
+        List<CartItemResponse> cartItemResponses = List.of(cartItemResponse);
         Cart cart = new Cart(1L, 1L, cartItems);
 
-        CartDTO result = CartMapper.toDTO(cart, cartItemDTOs);
+        CartResponse result = CartMapper.toDTO(cart, cartItemResponses);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getItems().size());
         Assertions.assertEquals(1, result.getItems().getFirst().getProductId());
         Assertions.assertEquals(1, result.getItems().getFirst().getQuantity());
-        Assertions.assertEquals(BigDecimal.valueOf(500), cartItemDTOs.getFirst().getTotalPrice());
+        Assertions.assertEquals(BigDecimal.valueOf(500), cartItemResponses.getFirst().getTotalPrice());
         Assertions.assertEquals(BigDecimal.valueOf(500), result.getTotalPrice());
     }
 
@@ -47,7 +45,7 @@ public class CartMapperTest {
         cartItem.setQuantity(1);
         ProductResponse productResponse = new ProductResponse(1L, "Product", null, BigDecimal.valueOf(500), 0, null);
 
-        CartItemDTO result = CartMapper.toCartItemDTO(cartItem, productResponse);
+        CartItemResponse result = CartMapper.toCartItemDTO(cartItem, productResponse);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getProductId());

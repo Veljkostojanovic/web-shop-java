@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class OrderItemMapper {
 
-    public static OrderItemDTO toDTO(OrderItem orderItem) {
+    public static OrderItemResponse toDTO(OrderItem orderItem) {
         if(orderItem == null) return null;
         BigDecimal totalPrice =
                 orderItem.getPrice()
                         .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
 
-        return new OrderItemDTO(
+        return new OrderItemResponse(
                 orderItem.getProduct().getId(),
                 orderItem.getProduct().getName(),
                 orderItem.getPrice(),

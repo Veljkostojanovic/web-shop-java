@@ -1,64 +1,79 @@
+
 package com.webshop.common.exceptions;
 
+import jakarta.persistence.OptimisticLockException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import javax.naming.InsufficientResourcesException;
-import java.nio.file.AccessDeniedException;
+
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+public class GlobalExceptionHandler
+        extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            ResourceNotFoundException ex
+    ) {
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(InsufficientResourcesException.class)
-    public ResponseEntity<ErrorResponse> handleNotEnoughResources(InsufficientResourcesException ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(
+            BadRequestException ex
+    ) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<ErrorResponse> handleConflict(ResourceConflictException ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    public ResponseEntity<ErrorResponse> handleConflict(
+            ResourceConflictException ex
+    ) {
+        return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConflict(DataIntegrityViolationException ex) {
-        ErrorResponse error = new  ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleStockConflict(
+            InsufficientStockException ex
+    ) {
+        return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCreadentials(BadCredentialsException ex){
-        ErrorResponse error = new ErrorResponse((HttpStatus.UNAUTHORIZED.value()), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex
+    ) {
+        return error(
+                HttpStatus.UNAUTHORIZED,
+                "Invalid username or password"
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(
+            DataIntegrityViolationException ex
+    ) {
+        log.error("Database integrity violation", ex);
+
+        return error(
+                HttpStatus.CONFLICT,
+                "The operation violates a data constraint"
+        );
     }
 
     @Override
@@ -66,32 +81,89 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             MethodArgumentNotValidException ex,
             HttpHeaders headers,
             HttpStatusCode status,
-            WebRequest request) {
-
-        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+            WebRequest request
+    ) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
                 .map(FieldError::getDefaultMessage)
+                .distinct()
                 .collect(Collectors.joining(", "));
 
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                message
+        );
+
+        return new ResponseEntity<>(
+                response,
+                headers,
+                HttpStatus.BAD_REQUEST
+        );
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected server error occurred.");
-        System.out.println(ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(
+            AuthenticationException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
+                .body(new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        "Authentication is required"
+                ));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRunTimeException(Exception ex){
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler({
+            OptimisticLockingFailureException.class,
+            OptimisticLockException.class
+    })
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(Exception ex) {
+        return error(
+                HttpStatus.CONFLICT,
+                "The resource was changed by another operation. "
+                        + "Reload it and try again."
+        );
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex){
-        ErrorResponse error = new  ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex
+    ) {
+        return error(
+                HttpStatus.FORBIDDEN,
+                "You do not have permission to access this resource"
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpected(
+            Exception ex
+    ) {
+        log.error("Unexpected application error", ex);
+
+        return error(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected server error occurred"
+        );
+    }
+
+    @ExceptionHandler(CartItemNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCartItemNotFoundException(Exception ex){
+        return error(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+    }
+
+    private ResponseEntity<ErrorResponse> error(
+            HttpStatus status,
+            String message
+    ) {
+        return ResponseEntity
+                .status(status)
+                .body(
+                        new ErrorResponse(status.value(), message)
+                );
     }
 }

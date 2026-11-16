@@ -1,3 +1,4 @@
+
 package com.webshop.config;
 
 import io.swagger.v3.oas.models.Components;
@@ -9,20 +10,27 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfig {
+
+    private static final String BEARER_AUTH = "bearerAuth";
+
     @Bean
     public OpenAPI customOpenAPI() {
+
+        SecurityScheme bearerScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT");
+
         return new OpenAPI()
-                .components(new Components()
-                        .addSecuritySchemes(
-                                "Bearer Authentication",
-                                new SecurityScheme()
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                        ))
+                .components(
+                        new Components().addSecuritySchemes(
+                                BEARER_AUTH,
+                                bearerScheme
+                        )
+                )
                 .addSecurityItem(
                         new SecurityRequirement()
-                                .addList("Bearer Authentication")
+                                .addList(BEARER_AUTH)
                 );
     }
 }

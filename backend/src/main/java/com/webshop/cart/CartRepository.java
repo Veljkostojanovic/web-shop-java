@@ -1,20 +1,24 @@
 package com.webshop.cart;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
-    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId")
-    Optional<Cart> findByUserId(@Param("userId") Long userId);
 
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Cart c WHERE c.userId = :userId")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c from Cart c where c.user.id = :userId")
+    Optional<Cart> findByUserIdForUpdate(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    @Query("SELECT c from Cart c where c.user.id = :userId")
+    Optional<Cart> findWithItemsByUserId(@Param("userId") Long userId);
+
+    boolean existsByUserId(@Param("userId") Long userId);
+
     void deleteByUserId(@Param("userId") Long userId);
-
-    boolean existsByUserId(Long userId);
 }
