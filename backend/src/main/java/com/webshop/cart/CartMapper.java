@@ -1,30 +1,49 @@
 package com.webshop.cart;
 
-import com.webshop.product.ProductResponse;
+import com.webshop.product.Product;
+
 import java.math.BigDecimal;
 import java.util.List;
 
-public class CartMapper {
+public final class CartMapper {
 
-    public static CartResponse toDTO(Cart cart, List<CartItemResponse> itemDTOs) {
-        if (cart == null) return null;
+    private static final BigDecimal ZERO_AMOUNT = BigDecimal.ZERO.setScale(Product.PRICE_SCALE);
 
-        BigDecimal total = itemDTOs.stream()
-                .map(CartItemResponse::totalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return new CartResponse(itemDTOs, total);
+    private CartMapper() {
     }
 
-    public static CartItemResponse toCartItemDTO(CartItem item, ProductResponse product) {
-        BigDecimal totalPrice = product.price().multiply(BigDecimal.valueOf(item.getQuantity()));
+    public static CartResponse toResponse(Cart cart) {
+        List<CartItemResponse> items = cart.getItems().stream()
+                .map(CartMapper::toItemResponse)
+                .toList();
 
+        BigDecimal total = cart.getItems().stream()
+                .filter(CartItem::isPurchasable)
+                .map(CartItem::lineTotal)
+                .reduce(ZERO_AMOUNT, BigDecimal::add);
+
+        int totalQuantity = cart.getItems().stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+        boolean checkoutReady = !items.isEmpty() && items.stream().allMatch(CartItemResponse::available);
+
+        return new CartResponse(items, totalQuantity, total, checkoutReady);
+    }
+
+    public static CartResponse emptyResponse() {
+        return new CartResponse(List.of(), 0, ZERO_AMOUNT, false);
+    }
+
+    private static CartItemResponse toItemResponse(CartItem item) {
+        Product product = item.getProduct();
         return new CartItemResponse(
-                product.id(),
-                product.name(),
-                product.price(),
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
                 item.getQuantity(),
-                totalPrice
-        );
+                item.lineTotal(),
+                item.isPurchasable(),
+                product.isActive() ? product.getStock() : 0);
     }
 }

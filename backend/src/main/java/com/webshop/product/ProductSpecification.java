@@ -3,58 +3,93 @@ package com.webshop.product;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
-public class ProductSpecification {
+final class ProductSpecification {
 
-    public static Specification<Product> hasName(String name){
-        return (root, query, cb) ->
-                cb.like( cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
+    private static final char LIKE_ESCAPE = '\\';
+
+    private ProductSpecification() {
     }
 
-    public static Specification<Product> minPrice(BigDecimal price){
-        return (root, query, cb) ->
-                cb.greaterThanOrEqualTo(root.get("price"), price);
+    static Specification<Product> forCatalog(ProductFilterDto filter) {
+        Specification<Product> spec = hasStatus(ProductStatus.ACTIVE);
+        if (filter == null) {
+            return spec;
+        }
+        return withCommonFilters(spec, filter.name(), filter.categoryId(),
+                filter.minPrice(), filter.maxPrice(), filter.minStock());
     }
 
-    public static Specification<Product> maxPrice(BigDecimal price){
-        return (root, query, cb) ->
-                cb.lessThanOrEqualTo(root.get("price"), price);
+    static Specification<Product> forAdmin(AdminProductFilter filter) {
+        Specification<Product> spec = allProducts();
+        if (filter == null) {
+            return spec;
+        }
+        if (filter.status() != null) {
+            spec = spec.and(hasStatus(filter.status()));
+        }
+        return withCommonFilters(spec, filter.name(), filter.categoryId(),
+                filter.minPrice(), filter.maxPrice(), filter.minStock());
     }
 
-    public static Specification<Product> minStock(Integer stock){
-        return (root, query, cb) ->
-                cb.greaterThanOrEqualTo(root.get("stock"), stock);
+    private static Specification<Product> withCommonFilters(Specification<Product> spec,
+                                                            String name,
+                                                            Long categoryId,
+                                                            BigDecimal minPrice,
+                                                            BigDecimal maxPrice,
+                                                            Integer minStock) {
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(nameContains(name));
+        }
+        if (categoryId != null) {
+            spec = spec.and(hasCategory(categoryId));
+        }
+        if (minPrice != null) {
+            spec = spec.and(priceAtLeast(minPrice));
+        }
+        if (maxPrice != null) {
+            spec = spec.and(priceAtMost(maxPrice));
+        }
+        if (minStock != null) {
+            spec = spec.and(stockAtLeast(minStock));
+        }
+        return spec;
     }
 
-    private static Specification<Product> hasCategory(Long id) {
-        return id == null ? null
-                : (root, q, cb) -> cb.equal(root.get("category").get("id"), id);
+    private static Specification<Product> allProducts() {
+        return (root, query, cb) -> cb.conjunction();
     }
 
-    public static Specification<Product> buildSpecification(ProductFilterDto filter){
-        Specification<Product> specification = (root, query, cb) -> cb.conjunction();
+    private static Specification<Product> hasStatus(ProductStatus status) {
+        return (root, query, cb) -> cb.equal(root.get("status"), status);
+    }
 
-        if (filter == null) return specification;
+    private static Specification<Product> nameContains(String name) {
+        String pattern = "%" + escapeLike(name.toLowerCase(Locale.ROOT)) + "%";
+        return (root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern, LIKE_ESCAPE);
+    }
 
-        if(filter.name() != null && !filter.name().isBlank()){
-            specification = specification.and(ProductSpecification.hasName(filter.name()));
-        }
+    private static Specification<Product> hasCategory(Long categoryId) {
+        return (root, query, cb) -> cb.equal(root.get("category").get("id"), categoryId);
+    }
 
-        if(filter.categoryId() != null){
-            specification = specification.and(ProductSpecification.hasCategory(filter.categoryId()));
-        }
+    private static Specification<Product> priceAtLeast(BigDecimal price) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("price"), price);
+    }
 
-        if(filter.maxPrice() != null){
-            specification = specification.and(ProductSpecification.maxPrice(filter.maxPrice()));
-        }
+    private static Specification<Product> priceAtMost(BigDecimal price) {
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("price"), price);
+    }
 
-        if(filter.minPrice() != null){
-            specification = specification.and(ProductSpecification.minPrice(filter.minPrice()));
-        }
+    private static Specification<Product> stockAtLeast(Integer stock) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("stock"), stock);
+    }
 
-        if(filter.minStock() != null){
-            specification = specification.and(ProductSpecification.minStock(filter.minStock()));
-        }
-        return specification;
+    private static String escapeLike(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 }

@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,27 +20,32 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
     private final OrderService orderService;
 
-    @PostMapping("/checkout")
-    public ResponseEntity<OrderResponse> checkout(@AuthenticationPrincipal UserPrincipal user) {
-        OrderResponse orderResponse = orderService.createOrder(user.getId());
-        return new ResponseEntity<>(orderResponse, HttpStatus.CREATED);
+    @PostMapping
+    public ResponseEntity<OrderResponse> placeOrder(@AuthenticationPrincipal UserPrincipal user) {
+        OrderResponse created = orderService.createOrder(user.getId());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.id())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<OrderResponse>> getMyOrders(@AuthenticationPrincipal UserPrincipal user,
+                                                           @ParameterObject @Valid OrderFilter filter,
+                                                           @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(orderService.getOrdersForUser(user.getId(), filter, pageable));
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrder(
-            @PathVariable @Positive Long orderId,
-            @AuthenticationPrincipal UserPrincipal user)
-            {
+    public ResponseEntity<OrderResponse> getMyOrder(@PathVariable @Positive Long orderId,
+                                                    @AuthenticationPrincipal UserPrincipal user) {
         return ResponseEntity.ok(orderService.getOrder(orderId, user.getId()));
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<Page<OrderResponse>> getOrdersByUserId(
-            @AuthenticationPrincipal UserPrincipal user,
-            @ParameterObject @Valid OrderFilterRequest filter,
-            @ParameterObject Pageable pageable
-    ) {
-        Page<OrderResponse> page = orderService.getOrdersByUserId(user.getId(), filter, pageable);
-        return ResponseEntity.ok(page);
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponse> cancelMyOrder(@PathVariable @Positive Long orderId,
+                                                       @AuthenticationPrincipal UserPrincipal user) {
+        return ResponseEntity.ok(orderService.cancelOrder(orderId, user.getId()));
     }
 }

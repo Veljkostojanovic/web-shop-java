@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 public class CategoryMapperTest {
     @Test
-    void toDto(){
+    void toDto() {
         Category category = new Category(1L, "Category", null);
 
         CategoryResponse categoryResponse = CategoryMapper.toResponse(category);
@@ -16,7 +16,7 @@ public class CategoryMapperTest {
     }
 
     @Test
-    void fromDto(){
+    void fromDto() {
         CategoryResponse categoryResponse = new CategoryResponse(1L, "Category");
 
         Category category = CategoryMapper.toEntity(categoryResponse);
@@ -28,13 +28,13 @@ public class CategoryMapperTest {
     }
 
     @Test
-    void toDTO_null(){
+    void toDTO_null() {
         CategoryResponse categoryResponse = CategoryMapper.toResponse(null);
         Assertions.assertNull(categoryResponse);
     }
 
     @Test
-    void toEntity_null(){
+    void toEntity_null() {
         Category category = CategoryMapper.toEntity(null);
         Assertions.assertNull(category);
     }

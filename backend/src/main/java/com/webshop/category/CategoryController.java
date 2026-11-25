@@ -8,10 +8,10 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.data.domain.Pageable;
 
 import java.net.URI;
 
@@ -29,7 +29,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<CategoryResponse>> getAllCategories(@ParameterObject @Valid Pageable pageable) {
+    public ResponseEntity<Page<CategoryResponse>> getAllCategories(@ParameterObject Pageable pageable) {
         Page<CategoryResponse> page = categoryService.getAllCategories(pageable);
         return ResponseEntity.ok(page);
     }
@@ -51,6 +51,11 @@ public class CategoryController {
         return ResponseEntity.ok(updated);
     }
 
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<CategoryResponse> activateCategory(@PathVariable @Positive Long id) {
+        return ResponseEntity.ok(categoryService.activateCategory(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable @Positive Long id) {
         categoryService.deleteCategory(id);
@@ -58,7 +63,7 @@ public class CategoryController {
     }
 
     @GetMapping("/exists")
-    public ResponseEntity<ExistsResponse> categoryExistsByNameIgnoreCase(@RequestParam @NotBlank @Size(max = 255) String name) {
+    public ResponseEntity<ExistsResponse> categoryExistsByNameIgnoreCase(@RequestParam @NotBlank @Size(max = Category.MAX_NAME_LENGTH) String name) {
         return ResponseEntity.ok(new ExistsResponse(categoryService.existsByNameIgnoreCase(name)));
     }
 }

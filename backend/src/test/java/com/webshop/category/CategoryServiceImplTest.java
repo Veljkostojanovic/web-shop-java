@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +87,7 @@ public class CategoryServiceImplTest {
         @Test
         void updateCategory_ThrowResourceNotFoundException_NotFound() throws Exception {
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
-            
+
             ResourceNotFoundException exception = Assertions.assertThrows
                     (ResourceNotFoundException.class, () -> categoryService.updateCategory(999L, new CategoryResponse()));
 

@@ -2,6 +2,7 @@ package com.webshop.product;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import java.math.BigDecimal;
 
 public class ProductMapperTest {
@@ -13,13 +14,13 @@ public class ProductMapperTest {
     }
 
     @Test
-    void toEntity_Null(){
+    void toEntity_Null() {
         Product result = ProductMapper.toEntity(null);
         Assertions.assertNull(result);
     }
 
     @Test
-    void toDTO_Ok(){
+    void toDTO_Ok() {
         Product product = new Product(1L, "Product", "Description", BigDecimal.valueOf(100), 10, null);
 
         ProductResponse result = ProductMapper.toDTO(product);
@@ -32,7 +33,7 @@ public class ProductMapperTest {
     }
 
     @Test
-    void toEntity_Ok(){
+    void toEntity_Ok() {
         ProductResponse productResponse = new ProductResponse(1L, "Product", "Description", BigDecimal.valueOf(100), 10, null);
         Product result = ProductMapper.toEntity(productResponse);
         Assertions.assertNotNull(result);

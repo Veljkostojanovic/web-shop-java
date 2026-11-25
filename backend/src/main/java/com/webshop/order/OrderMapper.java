@@ -1,24 +1,48 @@
 package com.webshop.order;
 
-import java.math.BigDecimal;
+import java.util.List;
 
-public class OrderMapper {
-    public static OrderResponse mapToDTO(OrderEntity order){
-        var itemsDTO = order.getOrderItems().stream()
-                .map(OrderMapper::mapItemToDTO)
-                .toList();
-        return new OrderResponse(order.getId(), order.getOrderDate(), order.getTotalAmount(), itemsDTO);
+public final class OrderMapper {
+
+    private OrderMapper() {
     }
 
-    public static OrderItemResponse mapItemToDTO(OrderItem item) {
-        var itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+    public static OrderResponse toResponse(OrderEntity order) {
+        return new OrderResponse(
+                order.getId(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getCreatedAt(),
+                order.getUpdatedAt(),
+                toItemResponses(order)
+        );
+    }
 
+    public static OrderAdminResponse toAdminResponse(OrderEntity order) {
+        return new OrderAdminResponse(
+                order.getId(),
+                order.getUser().getId(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getCreatedAt(),
+                order.getUpdatedAt(),
+                toItemResponses(order)
+        );
+    }
+
+    private static List<OrderItemResponse> toItemResponses(OrderEntity order) {
+        return order.getOrderItems().stream()
+                .map(OrderMapper::toItemResponse)
+                .toList();
+    }
+
+    private static OrderItemResponse toItemResponse(OrderItem item) {
         return new OrderItemResponse(
                 item.getProduct().getId(),
-                item.getProduct().getName(),
-                item.getPrice(),
+                item.getProductName(),
+                item.getUnitPrice(),
                 item.getQuantity(),
-                itemTotal
+                item.lineTotal()
         );
     }
 }

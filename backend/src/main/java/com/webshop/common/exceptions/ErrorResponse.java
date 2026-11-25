@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class ErrorResponse{
+public class ErrorResponse {
     int status;
     String message;
     long timestamp;

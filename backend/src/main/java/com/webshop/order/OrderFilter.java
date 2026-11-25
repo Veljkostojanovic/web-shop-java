@@ -1,28 +1,21 @@
 package com.webshop.order;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.DecimalMin;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record OrderFilter(
+        OrderStatus status,
 
-    @NotNull(message = "User ID is required")
-    Long userId,
+        Instant createdFrom,
 
-    @Past(message = "Date must be in the past")
-    LocalDateTime startDate,
+        Instant createdTo,
 
-    @Past(message = "Date must be in the past")
-    LocalDateTime endDate,
+        @DecimalMin(value = "0.0", message = "Min total cannot be negative")
+        BigDecimal minTotal,
 
-    @Min(value = 0, message = "Min price cannot be negative")
-    BigDecimal minPrice,
-
-    @Min(value = 0, message = "Max price cannot be negative")
-    BigDecimal maxPrice,
-
-    OrderStatus status
-){}
+        @DecimalMin(value = "0.0", message = "Max total cannot be negative")
+        BigDecimal maxTotal
+) {
+}

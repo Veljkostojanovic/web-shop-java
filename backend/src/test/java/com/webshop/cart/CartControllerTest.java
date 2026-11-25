@@ -24,7 +24,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -53,7 +54,7 @@ class CartControllerTest {
     void setUp() {
         CartItemResponse cartItemResponse = new CartItemResponse(1L, "Product", BigDecimal.valueOf(10), 2, BigDecimal.valueOf(20));
         cart = new CartResponse(List.of(cartItemResponse), BigDecimal.valueOf(20));
-        
+
         User user = new User();
         user.setId(1L);
         user.setEmail("test@example.com");
@@ -125,7 +126,7 @@ class CartControllerTest {
     @Test
     void updateItemQuantity_ValidRequest_ReturnsOkAndUpdatedCart() throws Exception {
         AddCartItemRequest request = new AddCartItemRequest(1L, 5);
-        
+
         when(cartService.updateItemQuantity(1L, 1L, 5)).thenReturn(cart);
 
         mockMvc.perform(put("/api/cart/items/{productId}", 1L)
@@ -140,7 +141,7 @@ class CartControllerTest {
     @Test
     void updateItemQuantity_ProductNotFound_ThrowsResourceNotFound() throws Exception {
         AddCartItemRequest request = new AddCartItemRequest(1L, 5);
-        
+
         when(cartService.updateItemQuantity(1L, 1L, 5))
                 .thenThrow(new ResourceNotFoundException("Product not found"));
 

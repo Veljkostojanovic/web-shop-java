@@ -2,9 +2,13 @@ package com.webshop.product;
 
 import com.webshop.category.CategoryMapper;
 
-public class ProductMapper {
+public final class ProductMapper {
 
-    public static ProductResponse toDTO(Product product) {
+    private ProductMapper() {
+
+    }
+
+    public static ProductResponse toResponse(Product product) {
         if (product == null) {
             return null;
         }
@@ -16,6 +20,24 @@ public class ProductMapper {
                 product.getPrice(),
                 product.getStock(),
                 CategoryMapper.toResponse(product.getCategory())
+        );
+    }
+
+    public static ProductAdminResponse toAdminResponse(Product product) {
+        if (product == null) {
+            return null;
+        }
+
+        return new ProductAdminResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                CategoryMapper.toResponse(product.getCategory()),
+                product.getStatus(),
+                product.getCreatedAt(),
+                product.getUpdatedAt()
         );
     }
 }

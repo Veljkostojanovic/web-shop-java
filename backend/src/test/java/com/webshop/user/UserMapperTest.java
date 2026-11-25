@@ -7,7 +7,7 @@ public class UserMapperTest {
 
     @Test
     void toDTO_shouldReturnNull() {
-        UserDTO result =  UserMapper.toDTO(null);
+        UserDTO result = UserMapper.toDTO(null);
         Assertions.assertNull(result);
     }
 

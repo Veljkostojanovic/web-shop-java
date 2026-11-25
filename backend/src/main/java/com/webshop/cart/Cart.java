@@ -1,105 +1,117 @@
 package com.webshop.cart;
 
 import com.webshop.common.exceptions.CartItemNotFoundException;
+import com.webshop.common.exceptions.DomainValidationException;
+import com.webshop.common.exceptions.InsufficientStockException;
+import com.webshop.common.exceptions.ResourceConflictException;
+import com.webshop.common.persistence.AuditableEntity;
 import com.webshop.product.Product;
-import com.webshop.user.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "carts")
-public class Cart {
+public class Cart extends AuditableEntity {
+
+    public static final int MAX_DISTINCT_ITEMS = 50;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    @Column(name = "user_id", nullable = false, updatable = false)
+    private Long userId;
 
     @OneToMany(
             mappedBy = "cart",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<CartItem> items = new ArrayList<>();
+    @OrderBy("id")
+    private final List<CartItem> items = new ArrayList<>();
 
-    public Cart(User user) {
-        changeUser(user);
+    public Cart(Long userId) {
+        if (userId == null) {
+            throw new DomainValidationException("User ID is required");
+        }
+        this.userId = userId;
     }
 
     public List<CartItem> getItems() {
         return Collections.unmodifiableList(items);
     }
 
-    public void addItem(Product product, Integer quantity) {
-        if (product == null) {
-            throw new IllegalArgumentException("Product is required");
-        }
-        if (product.getId() == null) {
-            throw new IllegalArgumentException("Product ID is required");
-        }
-
-
-        Optional<CartItem> existing = findItem(product.getId());
-        if (existing.isPresent()) {
-            existing.get().increaseQuantity(quantity);
-        } else {
-            items.add(new CartItem(this, product, quantity));
-        }
+    public boolean isEmpty() {
+        return items.isEmpty();
     }
 
-    public void updateItem(Long productId, Integer quantity) {
-        if (productId == null) {
-            throw new IllegalArgumentException("Product ID is required");
+    public void addItem(Product product, int quantity) {
+        requirePurchasable(product);
+        CartItem.requireValidQuantity(quantity);
+
+        Optional<CartItem> existing = findItem(product.getId());
+        int newQuantity = existing.map(item -> item.getQuantity() + quantity).orElse(quantity);
+
+        if (newQuantity > CartItem.MAX_QUANTITY) {
+            throw new DomainValidationException("You can have at most " + CartItem.MAX_QUANTITY
+                    + " of '" + product.getName() + "' in your cart");
         }
-        CartItem.validateQuantity(quantity);
-        CartItem item = findItem(productId)
-                .orElseThrow(() -> new CartItemNotFoundException(productId));
+        requireInStock(product, newQuantity);
+
+        if (existing.isPresent()) {
+            existing.get().changeQuantity(newQuantity);
+            return;
+        }
+        if (items.size() >= MAX_DISTINCT_ITEMS) {
+            throw new DomainValidationException(
+                    "A cart can contain at most " + MAX_DISTINCT_ITEMS + " different products");
+        }
+        items.add(new CartItem(this, product, newQuantity));
+    }
+
+    public void changeItemQuantity(Long productId, int quantity) {
+        CartItem item = findItem(productId).orElseThrow(() -> new CartItemNotFoundException(productId));
+        CartItem.requireValidQuantity(quantity);
+        requirePurchasable(item.getProduct());
+        requireInStock(item.getProduct(), quantity);
         item.changeQuantity(quantity);
     }
 
-    public void deleteItem(Long productId) {
-        if (productId == null) {
-            throw new IllegalArgumentException("Product ID is required");
-        }
-
-        Iterator<CartItem> iterator = items.iterator();
-
-        while(iterator.hasNext()){
-            CartItem item = iterator.next();
-            if(item.getProduct().getId().equals(productId)){
-                items.remove(item);
-                return;
-            }
-        }
+    public boolean removeItem(Long productId) {
+        return items.removeIf(item -> item.getProduct().getId().equals(productId));
     }
 
     public void clear() {
-        Iterator<CartItem> iterator = items.iterator();
-
-        while (iterator.hasNext()) {
-            CartItem item = iterator.next();
-            iterator.remove();
-            item.detachFromCart();
-        }
+        items.clear();
     }
 
     private Optional<CartItem> findItem(Long productId) {
         return items.stream()
-                .filter(item -> productId.equals(item.getProduct().getId()))
+                .filter(item -> item.getProduct().getId().equals(productId))
                 .findFirst();
     }
 
-    private void changeUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+    private static void requirePurchasable(Product product) {
+        if (product == null) {
+            throw new DomainValidationException("Product is required");
         }
-        this.user = user;
+        if (!product.isActive()) {
+            throw new ResourceConflictException("Product " + product.getId() + " is no longer available");
+        }
+    }
+
+    private static void requireInStock(Product product, int requested) {
+        if (requested > product.getStock()) {
+            throw new InsufficientStockException(product.getId(), product.getName(), requested, product.getStock());
+        }
     }
 }

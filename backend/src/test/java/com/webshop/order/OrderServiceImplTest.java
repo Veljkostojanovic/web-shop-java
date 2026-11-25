@@ -1,8 +1,8 @@
 package com.webshop.order;
 
 import com.webshop.cart.Cart;
-import com.webshop.cart.CartRepository;
 import com.webshop.cart.CartItem;
+import com.webshop.cart.CartRepository;
 import com.webshop.common.exceptions.InsufficientStockException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
 import com.webshop.product.Product;
@@ -17,18 +17,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -189,7 +188,7 @@ class OrderServiceImplTest {
             assertEquals(100L, result.getOrderId());
             assertEquals(BigDecimal.valueOf(100), result.getTotalAmount());
             assertEquals(1, result.getItems().size());
-                        assertEquals("Test Product", result.getItems().get(0).getProductName());
+            assertEquals("Test Product", result.getItems().get(0).getProductName());
 
             verify(orderRepository, times(1)).findById(anyLong());
         }
@@ -208,13 +207,13 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_ExistingOrders_ReturnsDTOList() {
-            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0,10), 1);
+            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0, 10), 1);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0, 10));
 
             assertNotNull(results);
             assertFalse(results.isEmpty());
@@ -226,13 +225,13 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_NoOrders_ReturnsEmptyList() {
-            Page<OrderEntity> page = new PageImpl<>(new ArrayList<>(), PageRequest.of(0,10), 0);
+            Page<OrderEntity> page = new PageImpl<>(new ArrayList<>(), PageRequest.of(0, 10), 0);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0,10));
+            var results = orderServiceImpl.getOrdersByUserId(1L, filterRequest, PageRequest.of(0, 10));
 
             assertNotNull(results);
             assertTrue(results.isEmpty());
@@ -247,7 +246,7 @@ class OrderServiceImplTest {
 
         @Test
         void getOrdersByUserId_withValidPageable_returnsPage() {
-            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0,10), 1);
+            Page<OrderEntity> page = new PageImpl<>(List.of(order), PageRequest.of(0, 10), 1);
             OrderFilterRequest filterRequest = new OrderFilterRequest();
 
             when(orderRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))

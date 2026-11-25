@@ -17,14 +17,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.data.domain.PageRequest;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -71,15 +73,15 @@ public class ProductControllerTest {
 
     @Nested
     @DisplayName("Add Product Test")
-    class AddProductTests{
+    class AddProductTests {
 
         @Test
-        void addProduct_ShouldReturn201AndProduct() throws Exception{
+        void addProduct_ShouldReturn201AndProduct() throws Exception {
             when(productService.addProduct(any(ProductResponse.class))).thenReturn(productResponse);
 
             mockMvc.perform(post("/api/products")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(productResponse)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(productResponse)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value(productResponse.getName()))
                     .andExpect(jsonPath("$.description").value(productResponse.getDescription()))
@@ -91,12 +93,12 @@ public class ProductControllerTest {
         }
 
         @Test
-        void addProduct_ShouldReturn400_BadRequest() throws Exception{
+        void addProduct_ShouldReturn400_BadRequest() throws Exception {
             ProductResponse badDTO = new ProductResponse(1L, "", "", BigDecimal.valueOf(0), 0, null);
 
             mockMvc.perform(post("/api/products")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(badDTO)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(badDTO)))
                     .andExpect(status().isBadRequest());
             verifyNoInteractions(productService);
         }
@@ -104,11 +106,11 @@ public class ProductControllerTest {
 
     @Nested
     @DisplayName("Reading Product Tests")
-    class ReadProductTests{
+    class ReadProductTests {
 
         @Test
-        void search_EmptyList() throws Exception{
-            Page<ProductResponse> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0,10), 0);
+        void search_EmptyList() throws Exception {
+            Page<ProductResponse> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
             mockMvc.perform(get("/api/products"))
@@ -120,9 +122,9 @@ public class ProductControllerTest {
         }
 
         @Test
-        void search_shouldReturnsList() throws Exception{
+        void search_shouldReturnsList() throws Exception {
             List<ProductResponse> productResponseList = List.of(productResponse);
-            Page<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 1);
+            Page<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0, 10), 1);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -139,9 +141,9 @@ public class ProductControllerTest {
         }
 
         @Test
-        void search_pageable_shouldReturnPage() throws Exception{
+        void search_pageable_shouldReturnPage() throws Exception {
             java.util.List<ProductResponse> productResponseList = java.util.List.of(productResponse);
-            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 1);
+            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0, 10), 1);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -155,9 +157,9 @@ public class ProductControllerTest {
         }
 
         @Test
-        void search_pageable_shouldReturnEmptyPage() throws Exception{
+        void search_pageable_shouldReturnEmptyPage() throws Exception {
             java.util.List<ProductResponse> productResponseList = java.util.List.of();
-            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0,10), 0);
+            PageImpl<ProductResponse> page = new PageImpl<>(productResponseList, PageRequest.of(0, 10), 0);
 
             when(productService.search(any(ProductFilterDto.class), any(Pageable.class))).thenReturn(page);
 
@@ -170,7 +172,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void getProductById_shoudlReturn400() throws Exception{
+        void getProductById_shoudlReturn400() throws Exception {
             mockMvc.perform(get("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
 
@@ -178,7 +180,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void getProductById_shouldReturn404() throws Exception{
+        void getProductById_shouldReturn404() throws Exception {
             when(productService.getProductById(anyLong())).thenThrow(new ResourceNotFoundException("Product not found"));
 
             mockMvc.perform(get("/api/products/{id}", 1L))
@@ -187,7 +189,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void getProductById_shouldReturnProduct() throws Exception{
+        void getProductById_shouldReturnProduct() throws Exception {
             when(productService.getProductById(anyLong())).thenReturn(productResponse);
 
             mockMvc.perform(get("/api/products/{id}", 1L))
@@ -200,7 +202,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void productExistsByNameIgnoreCase_Ok() throws Exception{
+        void productExistsByNameIgnoreCase_Ok() throws Exception {
             when(productService.existsByNameIgnoreCase(anyString())).thenReturn(true);
 
             mockMvc.perform(get("/api/products/exists")
@@ -211,11 +213,11 @@ public class ProductControllerTest {
         }
 
         @Test
-        void productExistsByNameIgnoreCase_NotFound() throws Exception{
+        void productExistsByNameIgnoreCase_NotFound() throws Exception {
             when(productService.existsByNameIgnoreCase(anyString())).thenReturn(false);
 
             mockMvc.perform(get("/api/products/exists")
-                    .param("name", anyString()))
+                            .param("name", anyString()))
                     .andExpect(status().isNotFound());
 
             verify(productService).existsByNameIgnoreCase(anyString());
@@ -224,10 +226,10 @@ public class ProductControllerTest {
 
     @Nested
     @DisplayName("Delete Product Test")
-    class DeleteProductTest{
+    class DeleteProductTest {
 
         @Test
-        void deleteProductById_shouldReturn204() throws Exception{
+        void deleteProductById_shouldReturn204() throws Exception {
             when(productService.deleteProduct(anyLong())).thenReturn(true);
 
             mockMvc.perform(delete("/api/products/{id}", 1L))
@@ -237,7 +239,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void deleteProductById_shouldReturn400_badRequest() throws Exception{
+        void deleteProductById_shouldReturn400_badRequest() throws Exception {
             mockMvc.perform(delete("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
 
@@ -247,18 +249,18 @@ public class ProductControllerTest {
 
     @Nested
     @DisplayName("Update product Test")
-    class UpdateProductTest{
+    class UpdateProductTest {
 
         @Test
-        void updateProductById_shouldReturn200() throws Exception{
+        void updateProductById_shouldReturn200() throws Exception {
             ProductResponse request = new ProductResponse(1L, "New Product",
                     "New Description", BigDecimal.valueOf(500), 10, categoryResponse);
 
             when(productService.updateProduct(anyLong(), any(ProductResponse.class))).thenReturn(request);
 
             mockMvc.perform(put("/api/products/{id}", 1L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value(request.getName()))
                     .andExpect(jsonPath("$.description").value(request.getDescription()))
@@ -270,7 +272,7 @@ public class ProductControllerTest {
         }
 
         @Test
-        void updateProductById_shouldReturn400_badId() throws Exception{
+        void updateProductById_shouldReturn400_badId() throws Exception {
             mockMvc.perform(put("/api/products/{id}", "abc"))
                     .andExpect(status().isBadRequest());
 
@@ -278,14 +280,14 @@ public class ProductControllerTest {
         }
 
         @Test
-        void updateProductbyId_shouldreturn400_badDTO() throws Exception{
+        void updateProductbyId_shouldreturn400_badDTO() throws Exception {
             ProductResponse request = new ProductResponse(1L, "", "", BigDecimal.valueOf(500), 0, null);
 
             when(productService.updateProduct(anyLong(), any(ProductResponse.class))).thenReturn(request);
 
             mockMvc.perform(put("/api/products/{id}", 1L)
                             .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
 
             verify(productService, never()).updateProduct(anyLong(), any(ProductResponse.class));

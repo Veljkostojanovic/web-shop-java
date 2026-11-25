@@ -17,7 +17,7 @@ class SecurityBeansTest {
     @Test
     void passwordEncoderBeanExists() {
         assertNotNull(passwordEncoder);
-        assertTrue(passwordEncoder instanceof BCryptPasswordEncoder);
+        assertInstanceOf(BCryptPasswordEncoder.class, passwordEncoder);
     }
 
     @Test

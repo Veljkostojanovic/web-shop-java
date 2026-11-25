@@ -14,20 +14,36 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
-    @Query("SELECT p from Product p JOIN FETCH p.category")
-    List<Product> findAll();
-
     @EntityGraph(attributePaths = {"category"})
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
 
     @EntityGraph(attributePaths = {"category"})
     Optional<Product> findById(Long id);
 
-    boolean existsByNameIgnoreCase(String name);
+    @EntityGraph(attributePaths = {"category"})
+    Optional<Product> findByIdAndStatus(Long id, ProductStatus status);
+
+    @Query("""
+            select case when count(p) > 0 then true else false end
+            from Product p
+            where lower(p.name) = lower(:name)
+            """)
+    boolean existsByNameIgnoreCase(@Param("name") String name);
+
+    @Query("""
+            select case when count(p) > 0 then true else false end
+            from Product p
+            where lower(p.name) = lower(:name) and p.id <> :id
+            """)
+    boolean existsByNameIgnoreCaseAndIdNot(@Param("name") String name, @Param("id") Long id);
+
+    boolean existsByCategoryIdAndStatus(Long categoryId, ProductStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id")
-    List<Product> findAllByIdInWithLock(@Param("ids") List<Long> ids);
+    @Query("select p from Product p where p.id = :id")
+    Optional<Product> findByIdForUpdate(@Param("id") Long id);
 
-    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id in :ids order by p.id")
+    List<Product> findAllByIdInWithLock(@Param("ids") List<Long> ids);
 }

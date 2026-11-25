@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.*;
 public class UserServiceImplTest {
 
     @Mock
-    private UserRepository  userRepository;
+    private UserRepository userRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -38,7 +39,7 @@ public class UserServiceImplTest {
     private LoginRequest loginRequest;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         userDTO = new UserDTO(1L, "user", "user@gmail.com", "USER");
         user = new User(1L, "user@gmail.com", "user", "Password", "USER");
         registerRequest = new RegisterRequest("user", "user@gmail.com", "password");
@@ -51,7 +52,7 @@ public class UserServiceImplTest {
     class FindUserTests {
 
         @Test
-        void findUserByEmail_Ok(){
+        void findUserByEmail_Ok() {
             when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
             UserDTO result = userServiceImpl.findUserByEmail("user@gmail.com");
@@ -65,7 +66,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void findUserByEmail_shouldThrowResourceNotFoundException(){
+        void findUserByEmail_shouldThrowResourceNotFoundException() {
             when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
@@ -79,7 +80,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void findUserByUsername_Ok(){
+        void findUserByUsername_Ok() {
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
             UserDTO result = userServiceImpl.findUserByUsername("user@gmail.com");
@@ -93,7 +94,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void findUserByUsername_shouldThrowResourceNotFoundException(){
+        void findUserByUsername_shouldThrowResourceNotFoundException() {
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
@@ -107,7 +108,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void getAllUsers_shouldReturnListOfUsers(){
+        void getAllUsers_shouldReturnListOfUsers() {
             when(userRepository.findAll()).thenReturn(List.of(user));
 
             List<UserDTO> result = userServiceImpl.getAllUsers();
@@ -126,7 +127,7 @@ public class UserServiceImplTest {
 
         @Test
         void validateRegistration_shouldThrow_DataIntegrityValidationException_EmailExists()
-                throws Exception{
+                throws Exception {
 
             when(userRepository.existsByEmail(anyString())).thenReturn(true);
 
@@ -143,7 +144,7 @@ public class UserServiceImplTest {
 
         @Test
         void validateRegistration_shouldThrow_DataIntegrityValidationException_UsernameExists()
-                throws Exception{
+                throws Exception {
 
             when(userRepository.existsByEmail(anyString())).thenReturn(false);
             when(userRepository.existsByUsername(anyString())).thenReturn(true);
@@ -161,7 +162,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void login_Ok(){
+        void login_Ok() {
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
             when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
@@ -174,7 +175,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void login_shouldThrow_BadCredentialsException_UserNotFound() throws Exception{
+        void login_shouldThrow_BadCredentialsException_UserNotFound() throws Exception {
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
             org.springframework.security.authentication.BadCredentialsException exception = Assertions.assertThrows(
@@ -188,7 +189,7 @@ public class UserServiceImplTest {
         }
 
         @Test
-        void login_shouldThrow_BadCredentialsException_PasswordDoesntMatch() throws Exception{
+        void login_shouldThrow_BadCredentialsException_PasswordDoesntMatch() throws Exception {
             when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
             when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
@@ -204,7 +205,7 @@ public class UserServiceImplTest {
 
 
         @Test
-        void registerUser_Ok(){
+        void registerUser_Ok() {
             when(userRepository.existsByEmail(anyString())).thenReturn(false);
             when(userRepository.existsByUsername(anyString())).thenReturn(false);
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
@@ -224,7 +225,7 @@ public class UserServiceImplTest {
 
         @Test
         void registerUser_shouldThrow_DataIntegrityValidationException_EmailExists()
-                    throws Exception{
+                throws Exception {
             when(userRepository.existsByEmail(anyString())).thenReturn(true);
 
             DataIntegrityViolationException exception = Assertions.assertThrows(
@@ -239,7 +240,7 @@ public class UserServiceImplTest {
 
         @Test
         void registerUser_shouldThrow_DataIntegrityValidationException_UsernameExists()
-                throws Exception{
+                throws Exception {
             when(userRepository.existsByEmail(anyString())).thenReturn(false);
             when(userRepository.existsByUsername(anyString())).thenReturn(true);
 
@@ -260,7 +261,7 @@ public class UserServiceImplTest {
     class DeleteUserTests {
 
         @Test
-        void deleteUserById_Ok(){
+        void deleteUserById_Ok() {
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(cartRepository.existsByUserId(anyLong())).thenReturn(true);
 
@@ -269,10 +270,10 @@ public class UserServiceImplTest {
             verify(cartRepository).deleteByUserId(anyLong());
             verify(cartRepository).existsByUserId(anyLong());
         }
-        
+
         @Test
         void deleteUserById_shouldThrow_ResourceNotFoundException_UserNotFound()
-                    throws Exception{
+                throws Exception {
             when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
@@ -286,7 +287,7 @@ public class UserServiceImplTest {
 
         @Test
         void deleteUserById_CheckCartDeletion()
-                throws Exception{
+                throws Exception {
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(cartRepository.existsByUserId(anyLong())).thenReturn(true);
 
@@ -300,7 +301,7 @@ public class UserServiceImplTest {
 
         @Test
         void deleteUserById_NoCart()
-                throws Exception{
+                throws Exception {
             when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
             when(cartRepository.existsByUserId(anyLong())).thenReturn(false);
 

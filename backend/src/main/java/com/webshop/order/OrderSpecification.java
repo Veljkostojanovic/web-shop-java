@@ -1,106 +1,85 @@
 package com.webshop.order;
 
-import jakarta.persistence.criteria.Fetch;
-import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-public class OrderSpecification {
+final class OrderSpecification {
 
-    public static Specification<OrderEntity> hasUserId(Long userId) {
-        return (root, query, cb) -> {
-            if (userId == null)
-                return null;
-
-            return cb.equal(root.get("user").get("id"), userId);
-        };
+    private OrderSpecification() {
     }
 
-    public static Specification<OrderEntity> hasStatus(OrderStatus status) {
-        return (root, query, cb) -> {
-            if (status == null)
-                return null;
-
-            return cb.equal(root.get("status"), status);
-        };
+    static Specification<OrderEntity> forCustomer(Long userId, OrderFilter filter) {
+        Specification<OrderEntity> spec = belongsTo(userId);
+        if (filter == null) {
+            return spec;
+        }
+        return withCommonFilters(spec, filter.status(), filter.createdFrom(), filter.createdTo(),
+                filter.minTotal(), filter.maxTotal());
     }
 
-    public static Specification<OrderEntity> createdAfter(LocalDateTime startDate) {
-        return (root, query, cb) -> {
-            if (startDate == null)
-                return null;
-
-            return cb.greaterThanOrEqualTo(root.get("orderDate"), startDate);
-        };
-    }
-
-    public static Specification<OrderEntity> createdBefore(LocalDateTime endDate) {
-        return (root, query, cb) -> {
-            if (endDate == null)
-                return null;
-
-            return cb.lessThanOrEqualTo(root.get("orderDate"), endDate);
-        };
-    }
-
-    public static Specification<OrderEntity> priceGreaterThanOrEqual(BigDecimal minPrice) {
-        return (root, query, cb) -> {
-            if (minPrice == null)
-                return null;
-
-            return cb.greaterThanOrEqualTo(root.get("totalAmount"), minPrice);
-        };
-    }
-
-    public static Specification<OrderEntity> priceLessThanOrEqual(BigDecimal maxPrice) {
-        return (root, query, cb) -> {
-            if (maxPrice == null)
-                return null;
-
-            return cb.lessThanOrEqualTo(root.get("totalAmount"), maxPrice);
-        };
-    }
-
-    public static Specification<OrderEntity> buildSpecification(OrderFilter filter) {
-        Specification<OrderEntity> specification = (root, query, cb) -> {
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                Fetch<OrderEntity, OrderItem> itemsFetch = root.fetch("orderItems", JoinType.LEFT);
-                itemsFetch.fetch("product", JoinType.LEFT);
-
-                query.distinct(true);
-            }
-
-            return cb.conjunction();
-        };
-
-        if (filter == null) return specification;
-
+    static Specification<OrderEntity> forAdmin(AdminOrderFilter filter) {
+        Specification<OrderEntity> spec = allOrders();
+        if (filter == null) {
+            return spec;
+        }
         if (filter.userId() != null) {
-            specification = specification.and(hasUserId(filter.userId()));
+            spec = spec.and(belongsTo(filter.userId()));
         }
+        return withCommonFilters(spec, filter.status(), filter.createdFrom(), filter.createdTo(),
+                filter.minTotal(), filter.maxTotal());
+    }
 
-        if (filter.status() != null) {
-            specification = specification.and(hasStatus(filter.status()));
+    private static Specification<OrderEntity> withCommonFilters(Specification<OrderEntity> spec,
+                                                                OrderStatus status,
+                                                                Instant createdFrom,
+                                                                Instant createdTo,
+                                                                BigDecimal minTotal,
+                                                                BigDecimal maxTotal) {
+        if (status != null) {
+            spec = spec.and(hasStatus(status));
         }
-
-        if (filter.startDate() != null) {
-            specification = specification.and(createdAfter(filter.startDate()));
+        if (createdFrom != null) {
+            spec = spec.and(createdAtOrAfter(createdFrom));
         }
-
-        if (filter.endDate() != null) {
-            specification = specification.and(createdBefore(filter.endDate()));
+        if (createdTo != null) {
+            spec = spec.and(createdBefore(createdTo));
         }
-
-        if (filter.minPrice() != null) {
-            specification = specification.and(priceGreaterThanOrEqual(filter.minPrice()));
+        if (minTotal != null) {
+            spec = spec.and(totalAtLeast(minTotal));
         }
-
-        if (filter.maxPrice() != null) {
-            specification = specification.and(priceLessThanOrEqual(filter.maxPrice()));
+        if (maxTotal != null) {
+            spec = spec.and(totalAtMost(maxTotal));
         }
+        return spec;
+    }
 
-        return specification;
+    private static Specification<OrderEntity> allOrders() {
+        return (root, query, cb) -> cb.conjunction();
+    }
+
+    private static Specification<OrderEntity> belongsTo(Long userId) {
+        return (root, query, cb) -> cb.equal(root.get("user").get("id"), userId);
+    }
+
+    private static Specification<OrderEntity> hasStatus(OrderStatus status) {
+        return (root, query, cb) -> cb.equal(root.get("status"), status);
+    }
+
+    private static Specification<OrderEntity> createdAtOrAfter(Instant from) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("createdAt"), from);
+    }
+
+    private static Specification<OrderEntity> createdBefore(Instant to) {
+        return (root, query, cb) -> cb.lessThan(root.get("createdAt"), to);
+    }
+
+    private static Specification<OrderEntity> totalAtLeast(BigDecimal min) {
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("totalAmount"), min);
+    }
+
+    private static Specification<OrderEntity> totalAtMost(BigDecimal max) {
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("totalAmount"), max);
     }
 }

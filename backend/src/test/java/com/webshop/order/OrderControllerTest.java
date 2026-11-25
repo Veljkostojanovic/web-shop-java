@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -83,9 +84,7 @@ class OrderControllerTest {
             mockMvc.perform(post("/api/orders/checkout")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(result ->
-                            Assertions.assertTrue(
-                                    result.getResolvedException() instanceof RuntimeException
-                            )
+                            Assertions.assertInstanceOf(RuntimeException.class, result.getResolvedException())
                     );
 
             verify(orderService).createOrder(USER_ID);
@@ -124,9 +123,7 @@ class OrderControllerTest {
             mockMvc.perform(get("/api/orders/{orderId}", orderId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(result ->
-                            Assertions.assertTrue(
-                                    result.getResolvedException() instanceof ResourceNotFoundException
-                            )
+                            Assertions.assertInstanceOf(ResourceNotFoundException.class, result.getResolvedException())
                     );
 
             verify(orderService).getOrder(orderId, USER_ID);

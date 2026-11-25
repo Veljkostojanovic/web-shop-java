@@ -1,8 +1,8 @@
 package com.webshop.product;
 
 import com.webshop.category.Category;
-import com.webshop.category.CategoryResponse;
 import com.webshop.category.CategoryRepository;
+import com.webshop.category.CategoryResponse;
 import com.webshop.common.exceptions.BadRequestException;
 import com.webshop.common.exceptions.ResourceConflictException;
 import com.webshop.common.exceptions.ResourceNotFoundException;
@@ -11,16 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -59,7 +56,7 @@ public class ProductServiceImplTest {
 
     @Nested
     @DisplayName("Add Product Tests")
-    class AddProductTests{
+    class AddProductTests {
 
         @Test
         void addProduct_Ok() {
@@ -111,7 +108,7 @@ public class ProductServiceImplTest {
             when(productRepository.existsByNameIgnoreCase(any())).thenReturn(false);
 
             BadRequestException exception = Assertions
-                    .assertThrows(BadRequestException.class,  () -> productService.addProduct(productResponse));
+                    .assertThrows(BadRequestException.class, () -> productService.addProduct(productResponse));
 
             Assertions.assertEquals("Product must have category", exception.getMessage());
             verify(categoryRepository, never()).findById(anyLong());
@@ -134,11 +131,11 @@ public class ProductServiceImplTest {
 
     @Nested
     @DisplayName("Update Product Tests")
-    class UpdateProductTests{
+    class UpdateProductTests {
 
         @Test
         void updateProduct_Ok() {
-            ProductResponse request =  new ProductResponse(1L, "New Product",
+            ProductResponse request = new ProductResponse(1L, "New Product",
                     "New Description", BigDecimal.valueOf(10), 1, categoryResponse);
 
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
@@ -156,7 +153,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void updateProduct_shouldThrowResourceNotFoundException_productNotFound(){
+        void updateProduct_shouldThrowResourceNotFoundException_productNotFound() {
             when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
@@ -169,7 +166,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void updateProduct_shouldThrowResourceNotFoundException_categoryNotFound(){
+        void updateProduct_shouldThrowResourceNotFoundException_categoryNotFound() {
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
             when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -183,7 +180,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void updateProduct_categoryIdIsNull(){
+        void updateProduct_categoryIdIsNull() {
             productResponse.setCategory(null);
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
@@ -194,7 +191,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void updateProduct_categoryHasNoId(){
+        void updateProduct_categoryHasNoId() {
             productResponse.getCategory().setId(null);
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
@@ -207,7 +204,7 @@ public class ProductServiceImplTest {
 
     @Nested
     @DisplayName("Reading Product Tests")
-    class ReadProductTests{
+    class ReadProductTests {
 
         @Test
         void searchProduct_Ok() {
@@ -219,7 +216,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getTotalElements());
@@ -242,7 +239,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -261,7 +258,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -280,7 +277,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -299,7 +296,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -318,7 +315,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -337,7 +334,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -360,7 +357,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(null, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getContent().size());
@@ -377,7 +374,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(0, result.getTotalElements());
@@ -396,7 +393,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(0, result.getNumber());
@@ -416,7 +413,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOfProducts);
 
-            Page<ProductResponse> result = productService.search(filter, PageRequest.of(1,10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(1, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getNumber());
@@ -427,7 +424,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void getProductById_Ok(){
+        void getProductById_Ok() {
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
 
             ProductResponse result = productService.getProductById(1L);
@@ -444,7 +441,7 @@ public class ProductServiceImplTest {
 
 
         @Test
-        void getProductById_throwsResourceNotFoundException_productNotFound(){
+        void getProductById_throwsResourceNotFoundException_productNotFound() {
             when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
             ResourceNotFoundException exception = Assertions.assertThrows(
@@ -457,7 +454,7 @@ public class ProductServiceImplTest {
         }
 
         @Test
-        void existsByNameIgnoreCase_Ok(){
+        void existsByNameIgnoreCase_Ok() {
             when(productRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
             boolean result = productService.existsByNameIgnoreCase("Product");
 
@@ -480,7 +477,7 @@ public class ProductServiceImplTest {
             when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-           Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
+            Page<ProductResponse> result = productService.search(filter, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
 
             Assertions.assertNotNull(result);
             Assertions.assertEquals(1, result.getTotalElements());
@@ -499,10 +496,10 @@ public class ProductServiceImplTest {
 
     @Nested
     @DisplayName("Delete product Tests")
-    class DeleteProductTests{
+    class DeleteProductTests {
 
         @Test
-        void deleteProductById_Ok(){
+        void deleteProductById_Ok() {
             when(productRepository.existsById(anyLong())).thenReturn(true);
             productService.deleteProduct(1L);
             verify(productRepository).deleteById(anyLong());
@@ -510,7 +507,7 @@ public class ProductServiceImplTest {
 
 
         @Test
-        void deleteProductById_shouldThrowResourceNotFoundException_productIdNotFound(){
+        void deleteProductById_shouldThrowResourceNotFoundException_productIdNotFound() {
             when(productRepository.existsById(anyLong())).thenReturn(false);
 
             ResourceNotFoundException exception = Assertions.assertThrows(

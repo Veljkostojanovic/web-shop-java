@@ -11,10 +11,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -58,7 +60,7 @@ class CartServiceImplTest {
 
     @Nested
     @DisplayName("Create cart tests")
-    class CreateCartTests{
+    class CreateCartTests {
 
         @Test
         void getOrCreateCart_ExistingCart_ReturnsDTO() {
@@ -92,7 +94,7 @@ class CartServiceImplTest {
 
     @Nested
     @DisplayName("Add product to cart tests")
-    class AddProductToCartTests{
+    class AddProductToCartTests {
 
         @Test
         void addProductToCart_NewProduct_AddsItemAndReturnsDTO() {
@@ -131,11 +133,11 @@ class CartServiceImplTest {
         }
 
         @Test
-        void addProductToCart_ProductNotFound_ThrowsException(){
+        void addProductToCart_ProductNotFound_ThrowsException() {
             when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.of(cart));
             when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-            ResourceNotFoundException exception =  assertThrows(ResourceNotFoundException.class,
+            ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                     () -> cartServiceImpl.addProductToCart(1L, 1L, 3));
 
             assertNotNull(exception);
@@ -157,7 +159,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartResponse result =  cartServiceImpl.updateItemQuantity(1L, 1L, 5);
+            CartResponse result = cartServiceImpl.updateItemQuantity(1L, 1L, 5);
 
             assertNotNull(result);
             assertEquals(1, result.getItems().size());
@@ -173,7 +175,7 @@ class CartServiceImplTest {
             when(productRepository.findAllById(anyList())).thenReturn(List.of(product));
             when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
-            CartResponse result =  cartServiceImpl.updateItemQuantity(1L, 1L, 0);
+            CartResponse result = cartServiceImpl.updateItemQuantity(1L, 1L, 0);
 
             assertNotNull(result);
             assertTrue(result.getItems().isEmpty());
